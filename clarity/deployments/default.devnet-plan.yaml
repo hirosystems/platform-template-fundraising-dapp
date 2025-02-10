@@ -41,7 +41,7 @@ plan:
             path: contracts/price-feed.clar
             anchor-block-only: true
             clarity-version: 3
-      epoch: "3.1"
+      epoch: "3.0"
     - id: 2
       transactions:
         - contract-call:
@@ -59,4 +59,4 @@ plan:
             cost: 12910
             parameters:
               - u1000000 # $10k goal in cents
-      epoch: "3.1"
+      epoch: "3.0"
