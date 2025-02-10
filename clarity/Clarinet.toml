@@ -11,12 +11,12 @@ contract_id = 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token'
 [contracts.fundraising]
 path = 'contracts/fundraising.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [contracts.price-feed]
 path = 'contracts/price-feed.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 [repl.analysis]
 passes = ['check_checker']
 
