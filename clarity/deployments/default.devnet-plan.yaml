@@ -45,16 +45,18 @@ plan:
     - id: 2
       transactions:
         - contract-call:
-            contract-id: price-feed
+            contract-id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.price-feed
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             method: update-prices
+            cost: 12910
             parameters:
               - u100 # $1 STX price in cents
               - u10000000 # $100k BTC price in cents
         - contract-call:
-            contract-id: fundraising
+            contract-id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.fundraising
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             method: initialize-campaign
+            cost: 12910
             parameters:
               - u1000000 # $10k goal in cents
       epoch: "3.1"
