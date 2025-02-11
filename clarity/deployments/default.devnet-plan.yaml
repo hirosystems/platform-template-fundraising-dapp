@@ -24,16 +24,6 @@ plan:
             cost: 47590
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token.clar"
             clarity-version: 3
-      epoch: "3.0"
-    - id: 1
-      transactions:
-        - contract-publish:
-            contract-name: fundraising
-            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 51300
-            path: contracts/fundraising.clar
-            anchor-block-only: true
-            clarity-version: 3
         - contract-publish:
             contract-name: price-feed
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -41,8 +31,15 @@ plan:
             path: contracts/price-feed.clar
             anchor-block-only: true
             clarity-version: 3
+        - contract-publish:
+            contract-name: fundraising
+            expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
+            cost: 49970
+            path: contracts/fundraising.clar
+            anchor-block-only: true
+            clarity-version: 3
       epoch: "3.0"
-    - id: 2
+    - id: 1
       transactions:
         - contract-call:
             contract-id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.price-feed
