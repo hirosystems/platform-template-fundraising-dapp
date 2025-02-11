@@ -3,11 +3,12 @@
 
 ;; Constants 
 (define-constant contract-owner tx-sender)
-(define-constant campaign-duration u2592000) ;; 30 days in seconds
+(define-constant campaign-duration u173000) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
 (define-constant err-not-authorized (err u100))
 (define-constant err-campaign-ended (err u101))
 (define-constant err-goal-not-met (err u102))
 (define-constant err-price-expired (err u103))
+(define-constant err-campaign-not-ended (err u104))
 
 ;; Data vars
 (define-data-var beneficiary principal contract-owner)
@@ -46,7 +47,7 @@
               err-campaign-ended)
     (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token transfer
       amount 
-      tx-sender 
+      contract-caller
       (as-contract tx-sender) 
       none))
     (map-set sbtc-donations tx-sender
@@ -73,7 +74,7 @@
   )
     (ok (>= total-value (var-get campaign-goal)))))
 
-;; Withdraw funds (only beneficiary, only if goal met)
+;; Withdraw funds (only beneficiary, only if goal met, only if campaign is ended)
 (define-public (withdraw)
   (let (
     (total-stx-amount (var-get total-stx))
@@ -82,7 +83,7 @@
   )
     (asserts! (is-eq tx-sender (var-get beneficiary)) err-not-authorized)
     (asserts! (>= stacks-block-height (+ (var-get campaign-start) campaign-duration))
-              err-campaign-ended)
+              err-campaign-not-ended)
     (asserts! goal-met err-goal-not-met)
     (as-contract
       (begin
@@ -99,6 +100,7 @@
         (ok true)))))
 
 ;; Refund if goal not met
+;; Can only do this after the campaign has ended
 (define-public (refund)
   (let (
     (stx-amount (default-to u0 (map-get? stx-donations tx-sender)))
@@ -106,7 +108,7 @@
     (goal-met (unwrap! (is-goal-met) err-price-expired))
   )
     (asserts! (>= stacks-block-height (+ (var-get campaign-start) campaign-duration))
-              err-campaign-ended)
+              err-campaign-not-ended)
     (asserts! (not goal-met) err-goal-not-met)
     (if (> stx-amount u0)
       (begin

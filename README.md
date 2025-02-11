@@ -1,6 +1,6 @@
 # STX/sBTC Fundraising App
 
-This is a simple crypto fundraising web page built on Stacks. It lets people run a 30-day campaign to raise money in STX and sBTC. It's built with two contracts that work together:
+This is a simple crypto fundraising web page built on Stacks. It lets people run a ~1-month-long campaign to raise funds in STX and sBTC. It's built with two contracts that work together:
 
 ### `fundraising.clar`
 
