@@ -9,6 +9,7 @@
 (define-constant err-goal-not-met (err u102))
 (define-constant err-price-expired (err u103))
 (define-constant err-campaign-not-ended (err u104))
+(define-constant err-goal-met (err u105))
 
 ;; Data vars
 (define-data-var beneficiary principal contract-owner)
@@ -29,7 +30,7 @@
     (var-set campaign-goal goal)
     (ok true)))
 
-;; Donate STX
+;; Donate STX, amount in microstacks
 (define-public (donate-stx (amount uint))
   (begin
     (asserts! (< stacks-block-height (+ (var-get campaign-start) campaign-duration)) 
@@ -62,7 +63,8 @@
                         err-price-expired))
     (sbtc-price (unwrap! (contract-call? .price-feed get-sbtc-price)
                          err-price-expired))
-    (stx-value (* (var-get total-stx) stx-price))
+    ;; multiply by price first, then divide by 1000000 to preserve precision
+    (stx-value (/ (* (var-get total-stx) stx-price) u1000000))
     (sbtc-value (* (var-get total-sbtc) sbtc-price))
   )
     (ok (+ stx-value sbtc-value))))
@@ -106,26 +108,27 @@
     (stx-amount (default-to u0 (map-get? stx-donations tx-sender)))
     (sbtc-amount (default-to u0 (map-get? sbtc-donations tx-sender)))
     (goal-met (unwrap! (is-goal-met) err-price-expired))
+    (contributor tx-sender)
   )
     (asserts! (>= stacks-block-height (+ (var-get campaign-start) campaign-duration))
               err-campaign-not-ended)
-    (asserts! (not goal-met) err-goal-not-met)
+    (asserts! (not goal-met) err-goal-met)
     (if (> stx-amount u0)
       (begin
-        (map-delete stx-donations tx-sender)
         (as-contract
-          (try! (stx-transfer? stx-amount (as-contract tx-sender) tx-sender))))
+          (try! (stx-transfer? stx-amount tx-sender contributor))))
       true)
+      (map-delete stx-donations tx-sender)
     (if (> sbtc-amount u0)
       (begin
-        (map-delete sbtc-donations tx-sender)
         (as-contract
           (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token transfer
             sbtc-amount
-            (as-contract tx-sender)
             tx-sender
+            contributor
             none))))
       true)
+      (map-delete sbtc-donations tx-sender)
     (ok true)))
 
 ;; Getter functions
@@ -139,7 +142,10 @@
   (ok {
     start: (var-get campaign-start),
     goal: (var-get campaign-goal),
-    total-stx: (var-get total-stx),
-    total-sbtc: (var-get total-sbtc),
-    usd-value: (get-total-usd)
+    totalStx: (var-get total-stx),
+    totalSbtc: (var-get total-sbtc),
+    usdValue: (unwrap-panic (get-total-usd))
   }))
+
+(define-read-only (get-contract-balance)
+  (stx-get-balance (as-contract tx-sender)))

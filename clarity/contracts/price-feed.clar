@@ -7,7 +7,7 @@
 (define-data-var stx-price-cents uint u0)  ;; STX/USD price in cents
 (define-data-var sbtc-price-cents uint u0) ;; sBTC/USD price in cents
 (define-data-var last-update uint u0)      ;; block height of last update
-(define-data-var price-valid-duration uint u144) ;; ~24 hours in blocks
+(define-data-var price-valid-duration uint u5760) ;; if a block is 15 seconds, this is ~24 hours in blocks
 
 (define-public (update-prices (stx-price uint) (sbtc-price uint))
   (begin
