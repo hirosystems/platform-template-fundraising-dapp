@@ -1,16 +1,28 @@
 "use client";
 
-import { Box, Button, Container, Flex, Link } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  Container,
+  Flex,
+  Link,
+  Menu,
+  MenuButton,
+  MenuItem,
+  MenuList,
+} from "@chakra-ui/react";
 import { useContext } from "react";
 import HiroWalletContext from "./HiroWalletProvider";
-import { showConnect } from "@stacks/connect";
 import { isDevnetEnvironment } from "@/lib/contract-utils";
 import { useDevnetWallet } from "@/lib/devnet-wallet-context";
 import { DevnetWalletButton } from "./DevnetWalletButton";
+import { formatStxAddress } from "@/lib/address-utils";
 
 export const Navbar = () => {
-  const { isWalletConnected } = useContext(HiroWalletContext);
+  const { isWalletConnected, authenticate, disconnect } =
+    useContext(HiroWalletContext);
   const { currentWallet, wallets, setCurrentWallet } = useDevnetWallet();
+  console.log({ currentWallet });
 
   return (
     <Box as="nav" bg="white" boxShadow="sm">
@@ -36,7 +48,7 @@ export const Navbar = () => {
             </Flex>
             <Link href="/" textDecoration="none">
               <Box fontSize="lg" fontWeight="bold" color="gray.900" ml={4}>
-                STX + sBTC Fundraiser
+                Fundraising
               </Box>
             </Link>
           </Flex>
@@ -47,27 +59,22 @@ export const Navbar = () => {
                 wallets={wallets}
                 onWalletSelect={setCurrentWallet}
               />
+            ) : isWalletConnected ? (
+              <Menu>
+                <MenuButton as={Button} colorScheme="gray">
+                  <Flex gap="2" align="center">
+                    <Box>Connected:</Box>
+                    <Box>
+                      {formatStxAddress(currentWallet?.stxAddress || "")}
+                    </Box>
+                  </Flex>
+                </MenuButton>
+                <MenuList>
+                  <MenuItem onClick={disconnect}>Disconnect Wallet</MenuItem>
+                </MenuList>
+              </Menu>
             ) : (
-              <Button
-                onClick={() => {
-                  if (!isWalletConnected) {
-                    showConnect({
-                      appDetails: {
-                        name: "STX + sBTC Fundraiser",
-                        icon: "https://freesvg.org/img/1541103084.png",
-                      },
-                      onFinish: () => {
-                        window.location.reload();
-                      },
-                      onCancel: () => {
-                        console.log("popup closed!");
-                      },
-                    });
-                  }
-                }}
-              >
-                {isWalletConnected ? "Connected" : "Connect Wallet"}
-              </Button>
+              <Button onClick={authenticate}>Connect Wallet</Button>
             )}
           </Flex>
         </Flex>
