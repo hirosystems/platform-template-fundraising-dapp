@@ -1,28 +1,13 @@
 "use client";
 
-import {
-  Box,
-  Button,
-  Container,
-  Flex,
-  Link,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-} from "@chakra-ui/react";
-import { useContext } from "react";
-import HiroWalletContext from "./HiroWalletProvider";
+import { Box, Container, Flex, Link } from "@chakra-ui/react";
 import { isDevnetEnvironment } from "@/lib/contract-utils";
 import { useDevnetWallet } from "@/lib/devnet-wallet-context";
 import { DevnetWalletButton } from "./DevnetWalletButton";
-import { formatStxAddress } from "@/lib/address-utils";
+import { ConnectWalletButton } from "./ConnectWallet";
 
 export const Navbar = () => {
-  const { isWalletConnected, authenticate, disconnect } =
-    useContext(HiroWalletContext);
   const { currentWallet, wallets, setCurrentWallet } = useDevnetWallet();
-  console.log({ currentWallet });
 
   return (
     <Box as="nav" bg="white" boxShadow="sm">
@@ -59,22 +44,8 @@ export const Navbar = () => {
                 wallets={wallets}
                 onWalletSelect={setCurrentWallet}
               />
-            ) : isWalletConnected ? (
-              <Menu>
-                <MenuButton as={Button} colorScheme="gray">
-                  <Flex gap="2" align="center">
-                    <Box>Connected:</Box>
-                    <Box>
-                      {formatStxAddress(currentWallet?.stxAddress || "")}
-                    </Box>
-                  </Flex>
-                </MenuButton>
-                <MenuList>
-                  <MenuItem onClick={disconnect}>Disconnect Wallet</MenuItem>
-                </MenuList>
-              </Menu>
             ) : (
-              <Button onClick={authenticate}>Connect Wallet</Button>
+              <ConnectWalletButton />
             )}
           </Flex>
         </Flex>

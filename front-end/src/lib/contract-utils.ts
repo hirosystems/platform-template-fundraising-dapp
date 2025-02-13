@@ -18,6 +18,12 @@ interface DirectCallResponse {
 export const isDevnetEnvironment = () =>
   process.env.NEXT_PUBLIC_STACKS_NETWORK === "devnet";
 
+export const isTestnetEnvironment = () =>
+  process.env.NEXT_PUBLIC_STACKS_NETWORK === "testnet";
+
+export const isMainnetEnvironment = () =>
+  process.env.NEXT_PUBLIC_STACKS_NETWORK === "mainnet";
+
 export const shouldUseDirectCall = (wallet: DevnetWallet | null) =>
   isDevnetEnvironment() && !!wallet?.mnemonic;
 

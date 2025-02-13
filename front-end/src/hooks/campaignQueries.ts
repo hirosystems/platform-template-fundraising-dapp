@@ -1,8 +1,8 @@
 import { UseQueryResult, useQuery } from "@tanstack/react-query";
 import { TransactionsApi } from "@stacks/blockchain-api-client";
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
-import { FUNDRAISING_CONTRACT } from "@/constants/fundraising";
-import { cvToJSON, hexToCV } from "@stacks/transactions";
+import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
+import { cvToJSON, hexToCV, cvToHex, principalCV } from "@stacks/transactions";
 
 interface CampaignInfo {
   start: number;
@@ -43,8 +43,9 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
               10
             ),
           };
+        } else {
+          throw new Error("Error fetching campaign info from blockchain");
         }
-        throw new Error("Error fetching campaign info from blockchain");
       } else {
         throw new Error(
           response?.cause || "Error fetching campaign info from blockchain"
@@ -61,7 +62,7 @@ interface CampaignDonation {
 }
 
 export const useExistingDonation = (
-  address?: string
+  address?: string | null | undefined
 ): UseQueryResult<CampaignDonation> => {
   const api = getApi(getStacksUrl()).smartContractsApi;
   return useQuery<CampaignDonation>({
@@ -75,7 +76,7 @@ export const useExistingDonation = (
         functionName: "get-stx-donation",
         readOnlyFunctionArgs: {
           sender: FUNDRAISING_CONTRACT.address || "",
-          arguments: [address],
+          arguments: [cvToHex(principalCV(address))],
         },
       });
 
@@ -85,14 +86,29 @@ export const useExistingDonation = (
         functionName: "get-sbtc-donation",
         readOnlyFunctionArgs: {
           sender: FUNDRAISING_CONTRACT.address || "",
-          arguments: [address],
+          arguments: [cvToHex(principalCV(address))],
         },
       });
 
-      return {
-        stxAmount: parseInt(stxResponse.result || "", 10),
-        sbtcAmount: parseInt(sbtcResponse.result || "", 10),
-      };
+      if (stxResponse?.okay && sbtcResponse?.okay) {
+        const stxResult = cvToJSON(hexToCV(stxResponse?.result || ""));
+        const sbtcResult = cvToJSON(hexToCV(sbtcResponse?.result || ""));
+
+        if (stxResult?.success && sbtcResult?.success) {
+          return {
+            stxAmount: parseInt(stxResult?.value?.value, 10),
+            sbtcAmount: parseInt(sbtcResult?.value?.value, 10),
+          };
+        } else {
+          throw new Error("Error fetching donation info from blockchain");
+        }
+      } else {
+        throw new Error(
+          stxResponse?.cause || sbtcResponse?.cause
+            ? `${stxResponse?.cause}. ${sbtcResponse?.cause}`
+            : "Error fetching donation info from blockchain"
+        );
+      }
     },
     enabled: !!address,
     retry: false,

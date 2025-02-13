@@ -333,10 +333,12 @@ describe("fundraising campaign", () => {
     expect(response.result.value).toEqual(
       Cl.tuple({
         start: Cl.uint(block),
+        end: Cl.uint(block + 173000),
         goal: Cl.uint(100000),
         totalStx: Cl.uint(0),
         totalSbtc: Cl.uint(0),
         usdValue: Cl.uint(0),
+        donationCount: Cl.uint(0),
       })
     );
 
@@ -359,10 +361,12 @@ describe("fundraising campaign", () => {
     expect(response2.result.value).toEqual(
       Cl.tuple({
         start: Cl.uint(block),
+        end: Cl.uint(block + 173000),
         goal: Cl.uint(100000),
         totalStx: Cl.uint(donationAmount),
         totalSbtc: Cl.uint(0),
         usdValue: Cl.uint(5000), // 5000 STX = $5000 in this example
+        donationCount: Cl.uint(1),
       })
     );
   });

@@ -73,7 +73,9 @@ A basic price oracle.
 - Lets an authorized address update prices
 - Errors if prices get too stale (>24h old)
 
-The fundraising contract uses the price feed to convert crypto donations into USD value to check if campaigns hit their goals. A script calling `price-feed.clar` needs to be called regularly to keep the prices updated.
+The fundraising contract uses the price feed to convert crypto donations into USD value to check if campaigns hit their goals.
+
+When you deploy this app to Testnet/Mainnet, you will need to define a script that calls `price-feed.clar`'s `update-prices` function regularly to keep the prices updated. You'll need to have a wallet funded to cover transaction fees for these updates. (For Devnet, the prices are automatically initialized in the Devnet deployment plan at `clarity/deployments/default.devnet-plan.yaml`.)
 
 ## Testing with Devnet
 
@@ -117,12 +119,13 @@ Once you've thoroughly tested your dApp in Devnet and are confident in its funct
 
 ### Moving to Testnet
 
-1. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
-2. Update the environment variables in your `.env` file to add values for `NEXT_PUBLIC_CONTRACT_DEPLOYER_TESTNET_ADDRESS` and `NEXT_PUBLIC_CONTRACT_DEPLOYER_MAINNET_ADDRESS`. Add the STX wallet address you plan to deploy the contract with.
-3. Deploy your contracts to the Testnet using the Platform dashboard and your deployment plan
-4. Call `fundraising.initialize-campaign` on-chain
-5. Test your application with real network conditions and transaction times
-6. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
+1. Plan how you will keep the price oracle updated - `price-feed.clar`'s `update-prices` function needs to be called regularly
+2. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
+3. Update the environment variables in your `.env` file to add values for `NEXT_PUBLIC_CONTRACT_DEPLOYER_TESTNET_ADDRESS` and `NEXT_PUBLIC_CONTRACT_DEPLOYER_MAINNET_ADDRESS`. Add the STX wallet address you plan to deploy the contract with.
+4. Deploy your contracts to the Testnet using the Platform dashboard and your deployment plan
+5. Call `fundraising.initialize-campaign` on-chain
+6. Test your application with real network conditions and transaction times
+7. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
 
 ### Launching on Mainnet
 

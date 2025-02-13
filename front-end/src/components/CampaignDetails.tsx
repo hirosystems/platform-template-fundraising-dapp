@@ -18,12 +18,17 @@ import {
   Alert,
   AlertTitle,
   AlertDescription,
+  Spinner,
+  Tooltip,
 } from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
 import { CAMPAIGN_SUBTITLE, CAMPAIGN_TITLE } from "@/constants/campaign";
 import StyledMarkdown from "./StyledMarkdown";
-import { useCampaignInfo } from "@/hooks/useCampaignInfo";
+import { useCampaignInfo } from "@/hooks/campaignQueries";
+import { useCurrentBlock } from "@/hooks/chainQueries";
+import { format } from "timeago.js";
+import DonationModal from "./DonationModal";
 
 export default function CampaignDetails({
   images,
@@ -32,11 +37,13 @@ export default function CampaignDetails({
   images: string[];
   markdownContent: string;
 }) {
+  const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const slideSize = useBreakpointValue({ base: "100%", md: "500px" });
 
-  const { data: campaignInfo } = useCampaignInfo();
-  console.log({ campaignInfo });
+  const { data: campaignInfo, error: campaignFetchError } = useCampaignInfo();
+  const { data: currentBlock } = useCurrentBlock();
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) =>
@@ -58,6 +65,10 @@ export default function CampaignDetails({
   const progress = campaignInfo
     ? (campaignInfo.usdValue / campaignInfo.goal) * 100
     : 0;
+
+  const blocksLeft = campaignInfo ? campaignInfo?.end - (currentBlock || 0) : 0;
+  const secondsLeft = blocksLeft * 15; // estimate each block is 15 seconds
+  const secondsLeftTimestamp = new Date(Date.now() - secondsLeft * 1000);
 
   return (
     <Container maxW="container.xl" py="8">
@@ -134,10 +145,26 @@ export default function CampaignDetails({
                     <StatLabel>Contributions</StatLabel>
                     <StatNumber>{campaignInfo?.donationCount}</StatNumber>
                     <StatHelpText>
-                      Started at block #{campaignInfo?.start}
-                    </StatHelpText>
-                    <StatHelpText>
-                      Ends at block #{campaignInfo?.end}
+                      <Flex direction="column">
+                        <Box>
+                          {blocksLeft.toLocaleString()} blocks left
+                          <Tooltip
+                            label={
+                              <Flex direction="column" gap="1">
+                                <Box>Started: Block #{campaignInfo?.start}</Box>
+                                <Box>Ends: Block #{campaignInfo?.end}</Box>
+                                <Box>Current: Block #{currentBlock}</Box>
+                              </Flex>
+                            }
+                          >
+                            <InfoIcon ml="1.5" mt="-3px" />
+                          </Tooltip>
+                        </Box>
+                        <Box>
+                          (About{" "}
+                          {format(secondsLeftTimestamp)?.replace(" ago", "")})
+                        </Box>
+                      </Flex>
                     </StatHelpText>
                   </Stat>
                 </SimpleGrid>
@@ -156,13 +183,13 @@ export default function CampaignDetails({
                   colorScheme="green"
                   width="full"
                   onClick={() => {
-                    // handle donation logic
+                    setIsDonationModalOpen(true);
                   }}
                 >
                   Contribute Now
                 </Button>
               </Flex>
-            ) : (
+            ) : campaignFetchError ? (
               <Box>
                 <Alert status="warning">
                   <Box>
@@ -175,6 +202,10 @@ export default function CampaignDetails({
                   </Box>
                 </Alert>
               </Box>
+            ) : (
+              <Box w="full" textAlign="center">
+                <Spinner size="lg" />
+              </Box>
             )}
           </Box>
         </SimpleGrid>
@@ -182,6 +213,12 @@ export default function CampaignDetails({
         {/* Markdown content */}
         <StyledMarkdown>{markdownContent}</StyledMarkdown>
       </Flex>
+      <DonationModal
+        isOpen={isDonationModalOpen}
+        onClose={() => {
+          setIsDonationModalOpen(false);
+        }}
+      />
     </Container>
   );
 }
