@@ -15,6 +15,9 @@ import {
   StatLabel,
   StatNumber,
   StatHelpText,
+  Alert,
+  AlertTitle,
+  AlertDescription,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@chakra-ui/icons";
 import { useEffect, useState } from "react";
@@ -52,19 +55,13 @@ export default function CampaignDetails({
     return () => clearInterval(timer);
   }, []);
 
-  // example campaign stats - you'll want to replace these with real data
-  const campaignStats = {
-    raised: 15000,
-    goal: 50000,
-    donors: 123,
-    daysLeft: 15,
-  };
-
-  const progress = (campaignStats.raised / campaignStats.goal) * 100;
+  const progress = campaignInfo
+    ? (campaignInfo.usdValue / campaignInfo.goal) * 100
+    : 0;
 
   return (
     <Container maxW="container.xl" py="8">
-      <Flex direction="column" gap="8">
+      <Flex direction="column" gap="6">
         <Flex direction="column" gap="1">
           <Heading>{CAMPAIGN_TITLE}</Heading>
           <Text>{CAMPAIGN_SUBTITLE}</Text>
@@ -121,53 +118,69 @@ export default function CampaignDetails({
 
           {/* Right column: Campaign stats & donation */}
           <Box p={6} borderRadius="lg" borderWidth="1px">
-            <Flex direction="column" gap={6}>
-              <SimpleGrid columns={2} spacing={4}>
-                <Stat>
-                  <StatLabel>Raised</StatLabel>
-                  <StatNumber>
-                    ${campaignStats.raised.toLocaleString()}
-                  </StatNumber>
-                  <StatHelpText>
-                    of ${campaignStats.goal.toLocaleString()} goal
-                  </StatHelpText>
-                </Stat>
-                <Stat>
-                  <StatLabel>Contributors</StatLabel>
-                  <StatNumber>{campaignStats.donors}</StatNumber>
-                  <StatHelpText>
-                    {campaignStats.daysLeft} days left
-                  </StatHelpText>
-                </Stat>
-              </SimpleGrid>
+            {campaignInfo ? (
+              <Flex direction="column" gap={6}>
+                <SimpleGrid columns={2} spacing={4}>
+                  <Stat>
+                    <StatLabel>Raised</StatLabel>
+                    <StatNumber>
+                      ${campaignInfo?.usdValue?.toLocaleString()}
+                    </StatNumber>
+                    <StatHelpText>
+                      of ${campaignInfo?.goal?.toLocaleString()} goal
+                    </StatHelpText>
+                  </Stat>
+                  <Stat>
+                    <StatLabel>Contributions</StatLabel>
+                    <StatNumber>{campaignInfo?.donationCount}</StatNumber>
+                    <StatHelpText>
+                      Started at block #{campaignInfo?.start}
+                    </StatHelpText>
+                    <StatHelpText>
+                      Ends at block #{campaignInfo?.end}
+                    </StatHelpText>
+                  </Stat>
+                </SimpleGrid>
 
-              <Box>
-                <Progress
-                  value={progress}
+                <Box>
+                  <Progress
+                    value={progress}
+                    size="lg"
+                    colorScheme="green"
+                    borderRadius="full"
+                  />
+                </Box>
+
+                <Button
                   size="lg"
                   colorScheme="green"
-                  borderRadius="full"
-                />
+                  width="full"
+                  onClick={() => {
+                    // handle donation logic
+                  }}
+                >
+                  Contribute Now
+                </Button>
+              </Flex>
+            ) : (
+              <Box>
+                <Alert status="warning">
+                  <Box>
+                    <AlertTitle>Campaign Data Unavailable</AlertTitle>
+                    <AlertDescription>
+                      Unable to retrieve campaign data from the blockchain. This
+                      could be due to network issues or the campaign may no
+                      longer exist.
+                    </AlertDescription>
+                  </Box>
+                </Alert>
               </Box>
-
-              <Button
-                size="lg"
-                colorScheme="green"
-                width="full"
-                onClick={() => {
-                  // handle donation logic
-                }}
-              >
-                Contribute Now
-              </Button>
-            </Flex>
+            )}
           </Box>
         </SimpleGrid>
 
         {/* Markdown content */}
-        <Box className="markdown-content">
-          <StyledMarkdown>{markdownContent}</StyledMarkdown>
-        </Box>
+        <StyledMarkdown>{markdownContent}</StyledMarkdown>
       </Flex>
     </Container>
   );

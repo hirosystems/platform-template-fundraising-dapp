@@ -4,13 +4,12 @@ import ReactMarkdown from "react-markdown";
 export default function StyledMarkdown({ children }: { children: string }) {
   return (
     <Box
-      className="markdown-content"
       sx={{
         h1: {
           fontSize: "2xl",
           fontWeight: "bold",
           mb: 4,
-          mt: 6,
+          mt: 4,
         },
         h2: {
           fontSize: "xl",

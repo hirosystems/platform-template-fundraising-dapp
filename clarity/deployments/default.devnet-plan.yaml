@@ -55,5 +55,5 @@ plan:
             method: initialize-campaign
             cost: 12910
             parameters:
-              - u1000000 # $10k goal in cents
+              - u10000 # goal in dollars
       epoch: "3.0"

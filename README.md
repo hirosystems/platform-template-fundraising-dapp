@@ -9,7 +9,7 @@ To run this app with a Stacks Devnet (private development blockchain environment
 1. **Start Devnet in Hiro Platform**
 
    - Log into the [Hiro Platform](https://platform.hiro.so)
-   - Navigate to your project and start Devnet
+   - Navigate to your project and start Devnet (do not opt to update the Devnet deployment plan, as it's pre-configured with some contract calls to initialize the project)
    - Copy your API key from either:
      - The Devnet Stacks API URL: `https://api.platform.hiro.so/v1/ext/<YOUR-API-KEY>/stacks-blockchain-api`
      - Or from https://platform.hiro.so/settings/api-keys
@@ -17,19 +17,18 @@ To run this app with a Stacks Devnet (private development blockchain environment
 2. **Configure Local Environment**
 
 Install dependencies:
-
 ```bash
 npm install
 ```
 
-Create an `.env` file using the existing `.env.example` file:
 
+Create an `.env` file using the existing `.env.example` file:
 ```bash
 cp front-end/.env.example front-end/.env
 ```
 
-Add your Hiro Platform API key to the renamed `front-end/.env` file:
 
+Add your Hiro Platform API key to the renamed `front-end/.env` file:
 ```bash
 NEXT_PUBLIC_PLATFORM_HIRO_API_KEY=your-api-key-here
 ```
@@ -37,16 +36,20 @@ NEXT_PUBLIC_PLATFORM_HIRO_API_KEY=your-api-key-here
 3. **Start the Frontend Application**
 
 Start the Next.js application from the front-end directory.
-
 ```bash
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to view and interact with the marketplace. If Devnet is running, your test wallets will already be funded and connected for testing.
+
+Visit `[http://localhost:3000](http://localhost:3000)` in your browser to view and interact with the marketplace. If Devnet is running, your test wallets will already be funded and connected for testing.
 
 ## Customization
 
 To customize this app for your fundraiser, edit the files `front-end/src/constants/campaign.ts` and `front-end/public/campaign-details.md`. Add images for the carousel to the `front-end/public/campaign` folder.
+
+The given Devnet deployment plan (found in `clarity/deployments/default.devnet-plan.yaml`) includes steps to initialize the campaign with a given funding goal. You can customize this plan as desired.
+
+When you're ready to deploy in Testnet or Mainnet, you can choose to add similar steps to your testnet/mainnet deployment plans, or you can initialize your campaign manually by calling the `fundraising.initialize-campaign` function on-chain.
 
 ## About the Smart Contracts
 
@@ -116,9 +119,10 @@ Once you've thoroughly tested your dApp in Devnet and are confident in its funct
 
 1. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
 2. Update the environment variables in your `.env` file to add values for `NEXT_PUBLIC_CONTRACT_DEPLOYER_TESTNET_ADDRESS` and `NEXT_PUBLIC_CONTRACT_DEPLOYER_MAINNET_ADDRESS`. Add the STX wallet address you plan to deploy the contract with.
-3. Deploy your contracts to the Testnet using the Platform dashboard and your same deployment plan
-4. Test your application with real network conditions and transaction times
-5. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
+3. Deploy your contracts to the Testnet using the Platform dashboard and your deployment plan
+4. Call `fundraising.initialize-campaign` on-chain
+5. Test your application with real network conditions and transaction times
+6. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
 
 ### Launching on Mainnet
 
@@ -127,7 +131,8 @@ When you're ready to launch your NFT marketplace officially:
 1. Ensure you have real STX tokens for deployment and transaction costs
 2. Update your deployment configuration to target Mainnet
 3. Deploy your contracts through the Platform dashboard
-4. Update your frontend environment variables to point to Mainnet
-5. Launch your application and begin processing real transactions!
+4. Call `fundraising.initialize-campaign` on-chain
+5. Update your frontend environment variables to point to Mainnet
+6. Launch your application and begin processing real transactions!
 
 Remember: Mainnet deployments are permanent and involve real cryptocurrency transactions. Double-check all contract code and frontend integrations before deploying to Mainnet.

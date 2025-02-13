@@ -2,13 +2,16 @@ import { UseQueryResult, useQuery } from "@tanstack/react-query";
 import { TransactionsApi } from "@stacks/blockchain-api-client";
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
 import { FUNDRAISING_CONTRACT } from "@/constants/fundraising";
+import { cvToJSON, hexToCV } from "@stacks/transactions";
 
 interface CampaignInfo {
   start: number;
+  end: number;
   goal: number;
   totalStx: number;
   totalSbtc: number;
   usdValue: number;
+  donationCount: number;
 }
 
 export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
@@ -25,7 +28,28 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
           arguments: [],
         },
       });
-      return response as unknown as CampaignInfo;
+      if (response?.okay && response?.result) {
+        const result = cvToJSON(hexToCV(response?.result || ""));
+        if (result?.success) {
+          return {
+            goal: parseInt(result?.value?.value?.goal?.value, 10),
+            start: parseInt(result?.value?.value?.start?.value, 10),
+            end: parseInt(result?.value?.value?.end?.value, 10),
+            totalSbtc: parseInt(result?.value?.value?.totalSbtc?.value, 10),
+            totalStx: parseInt(result?.value?.value?.totalStx?.value, 10),
+            usdValue: parseInt(result?.value?.value?.usdValue?.value, 10),
+            donationCount: parseInt(
+              result?.value?.value?.donationCount?.value,
+              10
+            ),
+          };
+        }
+        throw new Error("Error fetching campaign info from blockchain");
+      } else {
+        throw new Error(
+          response?.cause || "Error fetching campaign info from blockchain"
+        );
+      }
     },
     retry: false,
   });

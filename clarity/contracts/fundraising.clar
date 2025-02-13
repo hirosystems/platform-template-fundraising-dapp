@@ -17,12 +17,13 @@
 (define-data-var campaign-goal uint u0)  ;; in cents USD
 (define-data-var total-stx uint u0)
 (define-data-var total-sbtc uint u0)
+(define-data-var donation-count uint u0)
 
 ;; Maps
 (define-map stx-donations principal uint)  ;; donor -> amount
 (define-map sbtc-donations principal uint) ;; donor -> amount
 
-;; Initialize the campaign
+;; Initialize the campaign (goal is in US dollars)
 (define-public (initialize-campaign (goal uint))
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
@@ -39,6 +40,7 @@
     (map-set stx-donations tx-sender 
       (+ (default-to u0 (map-get? stx-donations tx-sender)) amount))
     (var-set total-stx (+ (var-get total-stx) amount))
+    (var-set donation-count (+ (var-get donation-count) u1))
     (ok true)))
 
 ;; Donate sBTC
@@ -54,6 +56,7 @@
     (map-set sbtc-donations tx-sender
       (+ (default-to u0 (map-get? sbtc-donations tx-sender)) amount))
     (var-set total-sbtc (+ (var-get total-sbtc) amount))
+    (var-set donation-count (+ (var-get donation-count) u1))
     (ok true)))
 
 ;; Calculate total USD value
@@ -141,10 +144,12 @@
 (define-read-only (get-campaign-info)
   (ok {
     start: (var-get campaign-start),
+    end: (+ (var-get campaign-start) campaign-duration),
     goal: (var-get campaign-goal),
     totalStx: (var-get total-stx),
     totalSbtc: (var-get total-sbtc),
-    usdValue: (unwrap-panic (get-total-usd))
+    usdValue: (unwrap-panic (get-total-usd)),
+    donationCount: (var-get donation-count)
   }))
 
 (define-read-only (get-contract-balance)
