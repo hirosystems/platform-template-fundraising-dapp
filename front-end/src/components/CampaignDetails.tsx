@@ -442,12 +442,17 @@ export default function CampaignDetails({
                     >
                       Contribute Now
                     </Button>
-                    <Box fontSize="sm">
-                      <strong>All-or-nothing</strong>: If the campaign
-                      doesn&apos;t meet its funding goal, contributors will be
-                      eligible for a refund. STX and sBTC prices can fluctuate
-                      -- note that this fundraiser is considered successful if
-                      the USD goal is met at any point during the campaign.
+                    <Box fontSize="xs">
+                      <Box mb="2">
+                        <strong>All-or-nothing</strong>: If the campaign
+                        doesn&apos;t meet its funding goal, contributors will be
+                        eligible for a refund.
+                      </Box>
+                      <Box>
+                        STX and sBTC prices can fluctuate. This fundraiser is
+                        considered successful if the USD goal is met{" "}
+                        <strong>at any point</strong> during the campaign.
+                      </Box>
                     </Box>
                   </Flex>
                 )}
