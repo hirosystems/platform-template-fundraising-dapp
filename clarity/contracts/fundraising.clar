@@ -3,8 +3,6 @@
 
 ;; Constants 
 (define-constant contract-owner tx-sender)
-(define-constant campaign-duration u50) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
-;; (define-constant campaign-duration u173000) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
 (define-constant err-not-authorized (err u100))
 (define-constant err-campaign-ended (err u101))
 (define-constant err-goal-not-met (err u102))
@@ -14,6 +12,7 @@
 
 ;; Data vars
 (define-data-var beneficiary principal contract-owner)
+(define-data-var campaign-duration uint u173000) ;; Duration in blocks. Default is if a block is 15 seconds, this is roughly 30 days.
 (define-data-var campaign-start uint u0)
 (define-data-var campaign-goal uint u0)  ;; in cents USD
 (define-data-var total-stx uint u0) ;; in microstacks
@@ -26,17 +25,18 @@
 (define-map sbtc-donations principal uint) ;; donor -> amount
 
 ;; Initialize the campaign (goal is in US dollars)
-(define-public (initialize-campaign (goal uint))
+(define-public (initialize-campaign (goal uint) (duration uint))
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
     (var-set campaign-start stacks-block-height)
     (var-set campaign-goal goal)
+    (var-set campaign-duration duration)
     (ok true)))
 
 ;; Donate STX, amount in microstacks
 (define-public (donate-stx (amount uint))
   (begin
-    (asserts! (< stacks-block-height (+ (var-get campaign-start) campaign-duration)) 
+    (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
               err-campaign-ended)
     (try! (stx-transfer? amount tx-sender (as-contract tx-sender)))
     (map-set stx-donations tx-sender 
@@ -48,7 +48,7 @@
 ;; Donate sBTC
 (define-public (donate-sbtc (amount uint))
   (begin
-    (asserts! (< stacks-block-height (+ (var-get campaign-start) campaign-duration)) 
+    (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
               err-campaign-ended)
     (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token transfer
       amount 
@@ -90,7 +90,7 @@
     (goal-met (unwrap! (is-goal-met) err-price-expired))
   )
     (asserts! (is-eq tx-sender (var-get beneficiary)) err-not-authorized)
-    (asserts! (>= stacks-block-height (+ (var-get campaign-start) campaign-duration))
+    (asserts! (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
               err-campaign-not-ended)
     (asserts! goal-met err-goal-not-met)
     (as-contract
@@ -117,7 +117,7 @@
     (goal-met (unwrap! (is-goal-met) err-price-expired))
     (contributor tx-sender)
   )
-    (asserts! (>= stacks-block-height (+ (var-get campaign-start) campaign-duration))
+    (asserts! (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
               err-campaign-not-ended)
     (asserts! (not goal-met) err-goal-met)
     (if (> stx-amount u0)
@@ -148,13 +148,13 @@
 (define-read-only (get-campaign-info)
   (ok {
     start: (var-get campaign-start),
-    end: (+ (var-get campaign-start) campaign-duration),
+    end: (+ (var-get campaign-start) (var-get campaign-duration)),
     goal: (var-get campaign-goal),
     totalStx: (var-get total-stx),
     totalSbtc: (var-get total-sbtc),
     usdValue: (unwrap-panic (get-total-usd)),
     donationCount: (var-get donation-count),
-    isExpired: (>= stacks-block-height (+ (var-get campaign-start) campaign-duration)),
+    isExpired: (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))),
     isWithdrawn: (var-get is-campaign-withdrawn)
   }))
 
