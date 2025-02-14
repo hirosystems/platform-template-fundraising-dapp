@@ -120,25 +120,32 @@ export default function DonationModal({
               ),
             });
 
+      const doSuccessToast = (txid: string) => {
+        toast({
+          title: "Thank you!",
+          description: (
+            <Flex direction="column" gap="4">
+              <Box>Processing donation of $${amount}.</Box>
+              <Box fontSize="xs">
+                Transaction ID: <strong>${txid}</strong>
+              </Box>
+            </Flex>
+          ),
+          status: "success",
+          isClosable: true,
+          duration: 30000,
+        });
+      };
+
       // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
       if (isDevnetEnvironment()) {
         const { txid } = await executeContractCall(txOptions, devnetWallet);
-        toast({
-          title: "Thank you!",
-          description: `Processing donation of $${amount}. Transaction broadcast with ID: ${txid}`,
-          status: "success",
-          duration: 3000,
-        });
+        doSuccessToast(txid);
       } else {
         await openContractCall({
           ...txOptions,
           onFinish: (data) => {
-            toast({
-              title: "Thank you!",
-              description: `Processing donation of $${amount}. Transaction broadcast with ID: ${data.txId}`,
-              status: "success",
-              duration: 3000,
-            });
+            doSuccessToast(data.txId);
           },
           onCancel: () => {
             toast({
@@ -159,6 +166,7 @@ export default function DonationModal({
       });
     } finally {
       setIsLoading(false);
+      onClose();
     }
   };
 
