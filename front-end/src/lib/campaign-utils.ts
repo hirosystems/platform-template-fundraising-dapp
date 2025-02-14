@@ -1,0 +1,59 @@
+import { FUNDRAISING_CONTRACT, SBTC_CONTRACT } from "@/constants/contracts";
+import { ContractCallRegularOptions } from "@stacks/connect";
+import { Network } from "./contract-utils";
+import {
+  AnchorMode,
+  FungiblePostCondition,
+  Pc,
+  PostConditionMode,
+  uintCV,
+} from "@stacks/transactions";
+
+interface ContributeParams {
+  address: string;
+  amount: number;
+}
+
+export const getContributeStxTx = (
+  network: Network,
+  params: ContributeParams // Send amount in microstacks
+): ContractCallRegularOptions => {
+  const { address, amount } = params;
+
+  return {
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Deny,
+    contractAddress: FUNDRAISING_CONTRACT.address || "",
+    contractName: FUNDRAISING_CONTRACT.name,
+    network,
+    functionName: "donate-stx",
+    functionArgs: [uintCV(amount)],
+    postConditions: [Pc.principal(address).willSendEq(amount).ustx()],
+  };
+};
+
+export const getContributeSbtcTx = (
+  network: Network,
+  params: ContributeParams // Send amount in sats
+): ContractCallRegularOptions => {
+  const { address, amount } = params;
+
+  const postCondition: FungiblePostCondition = {
+    type: "ft-postcondition",
+    address,
+    condition: "eq",
+    asset: `${SBTC_CONTRACT.address}.${SBTC_CONTRACT.name}::sBTC`,
+    amount,
+  };
+
+  return {
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Deny,
+    contractAddress: FUNDRAISING_CONTRACT.address || "",
+    contractName: FUNDRAISING_CONTRACT.name,
+    network,
+    functionName: "donate-sbtc",
+    functionArgs: [uintCV(amount)],
+    postConditions: [postCondition],
+  };
+};

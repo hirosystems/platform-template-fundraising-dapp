@@ -24,8 +24,7 @@ export const isTestnetEnvironment = () =>
 export const isMainnetEnvironment = () =>
   process.env.NEXT_PUBLIC_STACKS_NETWORK === "mainnet";
 
-export const shouldUseDirectCall = (wallet: DevnetWallet | null) =>
-  isDevnetEnvironment() && !!wallet?.mnemonic;
+export type Network = "mainnet" | "testnet" | "devnet";
 
 export const executeContractCall = async (
   txOptions: ContractCallRegularOptions,

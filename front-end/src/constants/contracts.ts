@@ -20,6 +20,16 @@ export const PRICE_FEED_CONTRACT = {
   name: PRICE_FEED_CONTRACT_NAME,
 } as const;
 
+const sbtcMainnetAddress = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4";
+
+export const SBTC_CONTRACT = {
+  address:
+    process.env.NEXT_PUBLIC_STACKS_NETWORK === "mainnet"
+      ? sbtcMainnetAddress
+      : DEPLOYER_ADDRESS,
+  name: "sbtc-token",
+} as const;
+
 export const getContractIdentifier = () => {
   return `${FUNDRAISING_CONTRACT.address}.${FUNDRAISING_CONTRACT.name}`;
 };

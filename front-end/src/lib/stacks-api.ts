@@ -16,6 +16,7 @@ import {
   ConfigurationParameters,
 } from "@stacks/blockchain-api-client";
 import { STACKS_TESTNET, STACKS_DEVNET, STACKS_MAINNET } from "@stacks/network";
+import { Network } from "./contract-utils";
 
 type HTTPHeaders = Record<string, string>;
 
@@ -30,6 +31,10 @@ export function getStacksUrl() {
   } else {
     return STACKS_API_MAINNET_URL;
   }
+}
+
+export function getStacksNetworkString(): Network {
+  return (process.env.NEXT_PUBLIC_STACKS_NETWORK || "devnet") as Network;
 }
 
 export function getStacksNetwork() {

@@ -15,8 +15,8 @@
 (define-data-var beneficiary principal contract-owner)
 (define-data-var campaign-start uint u0)
 (define-data-var campaign-goal uint u0)  ;; in cents USD
-(define-data-var total-stx uint u0)
-(define-data-var total-sbtc uint u0)
+(define-data-var total-stx uint u0) ;; in microstacks
+(define-data-var total-sbtc uint u0) ;; in sats
 (define-data-var donation-count uint u0)
 
 ;; Maps
@@ -66,9 +66,10 @@
                         err-price-expired))
     (sbtc-price (unwrap! (contract-call? .price-feed get-sbtc-price)
                          err-price-expired))
-    ;; multiply by price first, then divide by 1000000 to preserve precision
+    ;; STX: divide by 1000000 to convert microstacks to STX
     (stx-value (/ (* (var-get total-stx) stx-price) u1000000))
-    (sbtc-value (* (var-get total-sbtc) sbtc-price))
+    ;; sBTC: divide by 100000000 to convert satoshis to BTC
+    (sbtc-value (/ (* (var-get total-sbtc) sbtc-price) u100000000))
   )
     (ok (+ stx-value sbtc-value))))
 
