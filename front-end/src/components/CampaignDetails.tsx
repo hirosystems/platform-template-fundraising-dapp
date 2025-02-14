@@ -20,15 +20,28 @@ import {
   AlertDescription,
   Spinner,
   Tooltip,
+  useToast,
 } from "@chakra-ui/react";
 import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@chakra-ui/icons";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { CAMPAIGN_SUBTITLE, CAMPAIGN_TITLE } from "@/constants/campaign";
 import StyledMarkdown from "./StyledMarkdown";
-import { useCampaignInfo } from "@/hooks/campaignQueries";
+import { useCampaignInfo, useExistingDonation } from "@/hooks/campaignQueries";
 import { useCurrentBlock } from "@/hooks/chainQueries";
 import { format } from "timeago.js";
 import DonationModal from "./DonationModal";
+import HiroWalletContext from "./HiroWalletProvider";
+import { useDevnetWallet } from "@/lib/devnet-wallet-context";
+import {
+  executeContractCall,
+  isDevnetEnvironment,
+  isTestnetEnvironment,
+} from "@/lib/contract-utils";
+import { satsToSbtc, ustxToStx } from "@/lib/currency-utils";
+import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
+import { getRefundTx, getWithdrawTx } from "@/lib/campaign-utils";
+import { getStacksNetworkString } from "@/lib/stacks-api";
+import { openContractCall } from "@stacks/connect";
 
 export default function CampaignDetails({
   images,
@@ -37,6 +50,14 @@ export default function CampaignDetails({
   images: string[];
   markdownContent: string;
 }) {
+  const { mainnetAddress, testnetAddress } = useContext(HiroWalletContext);
+  const { currentWallet: devnetWallet } = useDevnetWallet();
+  const currentWalletAddress = isDevnetEnvironment()
+    ? devnetWallet?.stxAddress
+    : isTestnetEnvironment()
+    ? testnetAddress
+    : mainnetAddress;
+
   const [isDonationModalOpen, setIsDonationModalOpen] = useState(false);
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -69,6 +90,120 @@ export default function CampaignDetails({
   const blocksLeft = campaignInfo ? campaignInfo?.end - (currentBlock || 0) : 0;
   const secondsLeft = blocksLeft * 15; // estimate each block is 15 seconds
   const secondsLeftTimestamp = new Date(Date.now() - secondsLeft * 1000);
+
+  const { data: previousDonation } = useExistingDonation(currentWalletAddress);
+
+  const hasMadePreviousDonation =
+    previousDonation &&
+    (previousDonation?.stxAmount > 0 || previousDonation?.sbtcAmount > 0);
+
+  const toast = useToast();
+
+  const handleRefund = async () => {
+    const doSuccessToast = (txid: string) => {
+      toast({
+        title: "Refund requested",
+        description: (
+          <Flex direction="column" gap="4">
+            <Box fontSize="xs">
+              Transaction ID: <strong>{txid}</strong>
+            </Box>
+          </Flex>
+        ),
+        status: "success",
+        isClosable: true,
+        duration: 30000,
+      });
+    };
+
+    try {
+      const txOptions = getRefundTx(
+        getStacksNetworkString(),
+        currentWalletAddress || ""
+      );
+
+      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
+      if (isDevnetEnvironment()) {
+        const { txid } = await executeContractCall(txOptions, devnetWallet);
+        doSuccessToast(txid);
+      } else {
+        await openContractCall({
+          ...txOptions,
+          onFinish: (data) => {
+            doSuccessToast(data.txId);
+          },
+          onCancel: () => {
+            toast({
+              title: "Cancelled",
+              description: "Transaction was cancelled",
+              status: "info",
+              duration: 3000,
+            });
+          },
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Error",
+        description: "Failed to request refund",
+        status: "error",
+      });
+    }
+  };
+
+  const handleWithdraw = async () => {
+    const doSuccessToast = (txid: string) => {
+      toast({
+        title: "Withdraw requested",
+        description: (
+          <Flex direction="column" gap="4">
+            <Box fontSize="xs">
+              Transaction ID: <strong>{txid}</strong>
+            </Box>
+          </Flex>
+        ),
+        status: "success",
+        isClosable: true,
+        duration: 30000,
+      });
+    };
+
+    try {
+      const txOptions = getWithdrawTx(
+        getStacksNetworkString(),
+        currentWalletAddress || ""
+      );
+
+      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
+      if (isDevnetEnvironment()) {
+        const { txid } = await executeContractCall(txOptions, devnetWallet);
+        doSuccessToast(txid);
+      } else {
+        await openContractCall({
+          ...txOptions,
+          onFinish: (data) => {
+            doSuccessToast(data.txId);
+          },
+          onCancel: () => {
+            toast({
+              title: "Cancelled",
+              description: "Transaction was cancelled",
+              status: "info",
+              duration: 3000,
+            });
+          },
+        });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Error",
+        description: "Failed to request refund",
+        status: "error",
+      });
+    }
+  };
 
   return (
     <Container maxW="container.xl" py="8">
@@ -145,26 +280,48 @@ export default function CampaignDetails({
                     <StatLabel>Contributions</StatLabel>
                     <StatNumber>{campaignInfo?.donationCount}</StatNumber>
                     <StatHelpText>
-                      <Flex direction="column">
-                        <Box>
-                          {blocksLeft.toLocaleString()} blocks left
-                          <Tooltip
-                            label={
-                              <Flex direction="column" gap="1">
-                                <Box>Started: Block #{campaignInfo?.start}</Box>
-                                <Box>Ends: Block #{campaignInfo?.end}</Box>
-                                <Box>Current: Block #{currentBlock}</Box>
-                              </Flex>
-                            }
-                          >
-                            <InfoIcon ml="1.5" mt="-3px" />
-                          </Tooltip>
-                        </Box>
-                        <Box>
-                          (About{" "}
-                          {format(secondsLeftTimestamp)?.replace(" ago", "")})
-                        </Box>
-                      </Flex>
+                      {campaignInfo?.isExpired ? (
+                        <Flex direction="column">
+                          <Box>
+                            Campaign expired
+                            <Tooltip
+                              label={
+                                <Flex direction="column" gap="1">
+                                  <Box>
+                                    Expired at: Block #{campaignInfo?.end}
+                                  </Box>
+                                  <Box>Current: Block #{currentBlock}</Box>
+                                </Flex>
+                              }
+                            >
+                              <InfoIcon ml="1.5" mt="-3px" />
+                            </Tooltip>
+                          </Box>
+                        </Flex>
+                      ) : (
+                        <Flex direction="column">
+                          <Box>
+                            {blocksLeft.toLocaleString()} blocks left
+                            <Tooltip
+                              label={
+                                <Flex direction="column" gap="1">
+                                  <Box>
+                                    Started: Block #{campaignInfo?.start}
+                                  </Box>
+                                  <Box>Ends: Block #{campaignInfo?.end}</Box>
+                                  <Box>Current: Block #{currentBlock}</Box>
+                                </Flex>
+                              }
+                            >
+                              <InfoIcon ml="1.5" mt="-3px" />
+                            </Tooltip>
+                          </Box>
+                          <Box>
+                            (About{" "}
+                            {format(secondsLeftTimestamp)?.replace(" ago", "")})
+                          </Box>
+                        </Flex>
+                      )}
                     </StatHelpText>
                   </Stat>
                 </SimpleGrid>
@@ -178,16 +335,97 @@ export default function CampaignDetails({
                   />
                 </Box>
 
-                <Button
-                  size="lg"
-                  colorScheme="green"
-                  width="full"
-                  onClick={() => {
-                    setIsDonationModalOpen(true);
-                  }}
-                >
-                  Contribute Now
-                </Button>
+                {campaignInfo?.isExpired ? (
+                  <Flex direction="column" gap="2">
+                    <Box>
+                      This fundraiser has ended.{" "}
+                      {campaignInfo.usdValue >= campaignInfo.goal
+                        ? "It met its goal!"
+                        : "It did not meet its goal. Contributors are eligible for a refund."}
+                    </Box>
+                    {hasMadePreviousDonation ? (
+                      <Alert mb="4">
+                        <Box>
+                          <AlertTitle>
+                            You contributed to this fundraiser.
+                          </AlertTitle>
+                          <AlertDescription>
+                            <Box>
+                              STX:{" "}
+                              {Number(
+                                ustxToStx(previousDonation?.stxAmount)
+                              ).toFixed(2)}
+                            </Box>
+                            <Box>
+                              sBTC:{" "}
+                              {satsToSbtc(previousDonation?.sbtcAmount).toFixed(
+                                8
+                              )}
+                            </Box>
+                          </AlertDescription>
+                          <Box mt="4">
+                            {campaignInfo.usdValue >= campaignInfo.goal ? (
+                              <Box>Thanks for your contribution!</Box>
+                            ) : (
+                              <Button
+                                colorScheme="green"
+                                onClick={handleRefund}
+                              >
+                                Request a Refund
+                              </Button>
+                            )}
+                          </Box>
+                        </Box>
+                      </Alert>
+                    ) : null}
+                    {currentWalletAddress === FUNDRAISING_CONTRACT.address ? (
+                      <Alert mb="4">
+                        <Box>
+                          <AlertTitle>This is your fundraiser.</AlertTitle>
+                          <AlertDescription>
+                            {campaignInfo.usdValue >= campaignInfo.goal ? (
+                              <>
+                                <Box mb="1">
+                                  Congratulations on meeting your funding goal!
+                                </Box>
+                                {campaignInfo.isWithdrawn ? (
+                                  <Box>
+                                    You have already withdrawn the funds. Good
+                                    luck!
+                                  </Box>
+                                ) : (
+                                  <Button
+                                    colorScheme="green"
+                                    onClick={handleWithdraw}
+                                  >
+                                    Withdraw funds
+                                  </Button>
+                                )}
+                              </>
+                            ) : (
+                              <Box>
+                                Sorry, you did not meet your funding goal, so
+                                you are not eligible to withdraw the funds.
+                                Funds will be refunded to the contributors.
+                              </Box>
+                            )}
+                          </AlertDescription>
+                        </Box>
+                      </Alert>
+                    ) : null}
+                  </Flex>
+                ) : (
+                  <Button
+                    size="lg"
+                    colorScheme="green"
+                    width="full"
+                    onClick={() => {
+                      setIsDonationModalOpen(true);
+                    }}
+                  >
+                    Contribute Now
+                  </Button>
+                )}
               </Flex>
             ) : campaignFetchError ? (
               <Box>

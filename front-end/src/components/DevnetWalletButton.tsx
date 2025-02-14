@@ -1,8 +1,20 @@
 "use client";
 
-import { Box, Button, Flex, Tooltip, Tag, Menu, MenuButton, MenuList, MenuItem, IconButton, Link } from "@chakra-ui/react";
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { DevnetWallet } from '@/lib/devnet-wallet-context';
+import {
+  Box,
+  Button,
+  Flex,
+  Tooltip,
+  Tag,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  IconButton,
+  Link,
+} from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
+import { DevnetWallet } from "@/lib/devnet-wallet-context";
 import { formatStxAddress } from "@/lib/address-utils";
 import { DEVNET_STACKS_BLOCKCHAIN_API_URL } from "@/constants/devnet";
 
@@ -12,7 +24,11 @@ interface DevnetWalletButtonProps {
   onWalletSelect: (wallet: DevnetWallet) => void;
 }
 
-export const DevnetWalletButton = ({ currentWallet, wallets, onWalletSelect }: DevnetWalletButtonProps) => {
+export const DevnetWalletButton = ({
+  currentWallet,
+  wallets,
+  onWalletSelect,
+}: DevnetWalletButtonProps) => {
   return (
     <Menu>
       <Flex align="center">
@@ -59,6 +75,11 @@ export const DevnetWalletButton = ({ currentWallet, wallets, onWalletSelect }: D
           <MenuItem
             key={wallet.stxAddress}
             onClick={() => onWalletSelect(wallet)}
+            bg={
+              wallet.stxAddress === currentWallet?.stxAddress
+                ? "gray.300"
+                : "none"
+            }
           >
             <Flex align="center" gap={2}>
               <Box

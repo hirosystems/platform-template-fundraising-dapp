@@ -20,6 +20,7 @@ import {
   VStack,
   RadioGroup,
   Radio,
+  ModalFooter,
 } from "@chakra-ui/react";
 import React, { useState } from "react";
 import { useContext } from "react";
@@ -36,10 +37,12 @@ import { getContributeSbtcTx, getContributeStxTx } from "@/lib/campaign-utils";
 import { getStacksNetworkString } from "@/lib/stacks-api";
 import {
   btcToSats,
+  satsToSbtc,
   stxToUstx,
   usdToSbtc,
   usdToStx,
   useCurrentPrices,
+  ustxToStx,
 } from "@/lib/currency-utils";
 import { openContractCall } from "@stacks/connect";
 
@@ -125,9 +128,9 @@ export default function DonationModal({
           title: "Thank you!",
           description: (
             <Flex direction="column" gap="4">
-              <Box>Processing donation of $${amount}.</Box>
+              <Box>Processing donation of ${amount}.</Box>
               <Box fontSize="xs">
-                Transaction ID: <strong>${txid}</strong>
+                Transaction ID: <strong>{txid}</strong>
               </Box>
             </Flex>
           ),
@@ -171,12 +174,12 @@ export default function DonationModal({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size="xl">
+    <Modal isOpen={isOpen} onClose={onClose} size="full">
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Make a Contribution</ModalHeader>
         <ModalCloseButton />
-        <ModalBody>
+        <ModalBody pb="8">
           <Flex direction="column" gap="3">
             {!currentWalletAddress ? (
               <Flex
@@ -202,14 +205,22 @@ export default function DonationModal({
             ) : (
               <>
                 {hasMadePreviousDonation ? (
-                  <Alert>
+                  <Alert mb="4">
                     <Box>
                       <AlertTitle>
-                        You&apos;ve contributed to this campaign before
+                        Heads up: you&apos;ve contributed before. Thank you!
                       </AlertTitle>
                       <AlertDescription>
-                        <Box>STX: {previousDonation?.stxAmount}</Box>
-                        <Box>sBTC: {previousDonation?.sbtcAmount}</Box>
+                        <Box>
+                          STX:{" "}
+                          {Number(
+                            ustxToStx(previousDonation?.stxAmount)
+                          ).toFixed(2)}
+                        </Box>
+                        <Box>
+                          sBTC:{" "}
+                          {satsToSbtc(previousDonation?.sbtcAmount).toFixed(8)}
+                        </Box>
                       </AlertDescription>
                     </Box>
                   </Alert>
@@ -302,6 +313,9 @@ export default function DonationModal({
             )}
           </Flex>
         </ModalBody>
+        <ModalFooter>
+          <Button onClick={onClose}>Close</Button>
+        </ModalFooter>
       </ModalContent>
     </Modal>
   );

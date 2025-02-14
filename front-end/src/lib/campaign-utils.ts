@@ -57,3 +57,35 @@ export const getContributeSbtcTx = (
     postConditions: [postCondition],
   };
 };
+
+export const getRefundTx = (
+  network: Network,
+  address: string
+): ContractCallRegularOptions => {
+  return {
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Deny,
+    contractAddress: FUNDRAISING_CONTRACT.address || "",
+    contractName: FUNDRAISING_CONTRACT.name,
+    network,
+    functionName: "refund",
+    functionArgs: [],
+    postConditions: [Pc.principal(address).willSendEq(0).ustx()],
+  };
+};
+
+export const getWithdrawTx = (
+  network: Network,
+  address: string
+): ContractCallRegularOptions => {
+  return {
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Deny,
+    contractAddress: FUNDRAISING_CONTRACT.address || "",
+    contractName: FUNDRAISING_CONTRACT.name,
+    network,
+    functionName: "withdraw",
+    functionArgs: [],
+    postConditions: [Pc.principal(address).willSendEq(0).ustx()],
+  };
+};

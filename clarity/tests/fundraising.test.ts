@@ -339,6 +339,8 @@ describe("fundraising campaign", () => {
         totalSbtc: Cl.uint(0),
         usdValue: Cl.uint(0),
         donationCount: Cl.uint(0),
+        isExpired: Cl.bool(false),
+        isWithdrawn: Cl.bool(false),
       })
     );
 
@@ -367,6 +369,35 @@ describe("fundraising campaign", () => {
         totalSbtc: Cl.uint(0),
         usdValue: Cl.uint(5000), // 5000 STX = $5000 in this example
         donationCount: Cl.uint(1),
+        isExpired: Cl.bool(false),
+        isWithdrawn: Cl.bool(false),
+      })
+    );
+
+    // move past campaign duration
+    await simnet.mineEmptyBlocks(173001);
+    // ensure prices are up to date
+    await initPrices();
+
+    // Verify campaign shows expired
+    const response3 = await simnet.callReadOnlyFn(
+      "fundraising",
+      "get-campaign-info",
+      [],
+      deployer
+    );
+
+    expect(response2.result.value).toEqual(
+      Cl.tuple({
+        start: Cl.uint(block),
+        end: Cl.uint(block + 173000),
+        goal: Cl.uint(100000),
+        totalStx: Cl.uint(donationAmount),
+        totalSbtc: Cl.uint(0),
+        usdValue: Cl.uint(5000), // 5000 STX = $5000 in this example
+        donationCount: Cl.uint(1),
+        isExpired: Cl.bool(true),
+        isWithdrawn: Cl.bool(false),
       })
     );
   });

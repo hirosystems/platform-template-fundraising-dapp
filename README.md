@@ -81,7 +81,9 @@ When you deploy this app to Testnet/Mainnet, you will need to define a script th
 
 The Hiro Platform's Devnet is a sandboxed, personal blockchain environment for testing your dApps before deploying them to the testnet or mainnet. Each time you start a new Devnet, it will reset the blockchain state and deploy your project contracts from scratch.
 
-This is useful because deployments to the blockchain are permanent and cannot be undone. Ensure you have tested your contracts thoroughly in your Devnet before promoting them to Testnet or Mainnet!
+This is useful because deployments to the blockchain are permanent and cannot be undone. Ensure you have tested your contracts thoroughly in your Devnet before promoting them to Testnet or Mainnet.
+
+If you make changes to your contract, you will need to push your changes and restart Devnet for the contract changes to appear in your Devnet.
 
 ### 1. Start Devnet and Deploy Contracts
 
@@ -100,7 +102,7 @@ Smart contract functions can be tested directly from your Platform dashboard.
 5. Click "Call function" to execute the function, which will either succeed or fail based on the function's logic and the caller's permissions
 6. Once the function has been submitted, you can watch for the transaction to resolve on-chain in the Devnet dashboard and confirm that the function executed as expected
 
-Remember that any changes to the contracts will require restarting Devnet and redeploying the contracts!
+Remember that any changes to the contracts will require restarting Devnet and redeploying the contracts.
 
 ### 3. NFT Marketplace Integration Testing
 

@@ -3,7 +3,8 @@
 
 ;; Constants 
 (define-constant contract-owner tx-sender)
-(define-constant campaign-duration u173000) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
+(define-constant campaign-duration u50) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
+;; (define-constant campaign-duration u173000) ;; Duration in blocks. If a block is 15 seconds, this is roughly 30 days.
 (define-constant err-not-authorized (err u100))
 (define-constant err-campaign-ended (err u101))
 (define-constant err-goal-not-met (err u102))
@@ -18,6 +19,7 @@
 (define-data-var total-stx uint u0) ;; in microstacks
 (define-data-var total-sbtc uint u0) ;; in sats
 (define-data-var donation-count uint u0)
+(define-data-var is-campaign-withdrawn bool false)
 
 ;; Maps
 (define-map stx-donations principal uint)  ;; donor -> amount
@@ -66,10 +68,9 @@
                         err-price-expired))
     (sbtc-price (unwrap! (contract-call? .price-feed get-sbtc-price)
                          err-price-expired))
-    ;; STX: divide by 1000000 to convert microstacks to STX, then divide by 100 for cents->dollars
-    (stx-value (/ (* (var-get total-stx) stx-price) u100000000))
-    ;; sBTC: divide by 100000000 to convert satoshis to BTC, then divide by 100 for cents->dollars 
-    (sbtc-value (/ (* (var-get total-sbtc) sbtc-price) u10000000000))
+    ;; multiply by price first, then divide by 1000000 to preserve precision
+    (stx-value (/ (* (var-get total-stx) stx-price) u1000000))
+    (sbtc-value (* (var-get total-sbtc) sbtc-price))
   )
     (ok (+ stx-value sbtc-value))))
 
@@ -103,6 +104,7 @@
             (var-get beneficiary)
             none))
           true)
+        (var-set is-campaign-withdrawn true)
         (ok true)))))
 
 ;; Refund if goal not met
@@ -150,7 +152,9 @@
     totalStx: (var-get total-stx),
     totalSbtc: (var-get total-sbtc),
     usdValue: (unwrap-panic (get-total-usd)),
-    donationCount: (var-get donation-count)
+    donationCount: (var-get donation-count),
+    isExpired: (>= stacks-block-height (+ (var-get campaign-start) campaign-duration)),
+    isWithdrawn: (var-get is-campaign-withdrawn)
   }))
 
 (define-read-only (get-contract-balance)

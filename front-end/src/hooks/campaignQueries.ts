@@ -12,6 +12,8 @@ interface CampaignInfo {
   totalSbtc: number;
   usdValue: number;
   donationCount: number;
+  isExpired: boolean;
+  isWithdrawn: boolean;
 }
 
 export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
@@ -42,6 +44,8 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
               result?.value?.value?.donationCount?.value,
               10
             ),
+            isExpired: result?.value?.value?.isExpired?.value === "true",
+            isWithdrawn: result?.value?.value?.isWithdrawn?.value === "true",
           };
         } else {
           throw new Error("Error fetching campaign info from blockchain");
@@ -52,6 +56,7 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
         );
       }
     },
+    refetchInterval: 30000,
     retry: false,
   });
 };
