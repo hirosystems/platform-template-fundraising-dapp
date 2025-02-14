@@ -22,7 +22,12 @@ import {
   Tooltip,
   useToast,
 } from "@chakra-ui/react";
-import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@chakra-ui/icons";
+import {
+  CheckCircleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  InfoIcon,
+} from "@chakra-ui/icons";
 import { useContext, useEffect, useState } from "react";
 import { CAMPAIGN_SUBTITLE, CAMPAIGN_TITLE } from "@/constants/campaign";
 import StyledMarkdown from "./StyledMarkdown";
@@ -275,6 +280,14 @@ export default function CampaignDetails({
                     <StatHelpText>
                       of ${campaignInfo?.goal?.toLocaleString()} goal
                     </StatHelpText>
+                    {campaignInfo?.isGoalMet ? (
+                      <StatHelpText color="green.700">
+                        <Tooltip label="Since crypto prices can fluctuate, the fundraiser is considered successful if the USD goal is met at any point during the campaign.">
+                          <CheckCircleIcon mr="0.5" mt="-0.5" /> This campaign
+                          met its goal!
+                        </Tooltip>
+                      </StatHelpText>
+                    ) : null}
                   </Stat>
                   <Stat>
                     <StatLabel>Contributions</StatLabel>
@@ -339,7 +352,7 @@ export default function CampaignDetails({
                   <Flex direction="column" gap="2">
                     <Box>
                       This fundraiser has ended.{" "}
-                      {campaignInfo.usdValue >= campaignInfo.goal
+                      {campaignInfo?.isGoalMet
                         ? "It met its goal!"
                         : "It did not meet its goal. Contributors are eligible for a refund."}
                     </Box>
@@ -364,8 +377,11 @@ export default function CampaignDetails({
                             </Box>
                           </AlertDescription>
                           <Box mt="4">
-                            {campaignInfo.usdValue >= campaignInfo.goal ? (
-                              <Box>Thanks for your contribution!</Box>
+                            {campaignInfo?.isGoalMet ? (
+                              <Box>
+                                Thanks for your contribution! This fundraiser
+                                met its funding goal. 🎉
+                              </Box>
                             ) : (
                               <Button
                                 colorScheme="green"
@@ -383,7 +399,7 @@ export default function CampaignDetails({
                         <Box>
                           <AlertTitle>This is your fundraiser.</AlertTitle>
                           <AlertDescription>
-                            {campaignInfo.usdValue >= campaignInfo.goal ? (
+                            {campaignInfo?.isGoalMet ? (
                               <>
                                 <Box mb="1">
                                   Congratulations on meeting your funding goal!
@@ -415,16 +431,25 @@ export default function CampaignDetails({
                     ) : null}
                   </Flex>
                 ) : (
-                  <Button
-                    size="lg"
-                    colorScheme="green"
-                    width="full"
-                    onClick={() => {
-                      setIsDonationModalOpen(true);
-                    }}
-                  >
-                    Contribute Now
-                  </Button>
+                  <Flex direction="column" gap="4">
+                    <Button
+                      size="lg"
+                      colorScheme="green"
+                      width="full"
+                      onClick={() => {
+                        setIsDonationModalOpen(true);
+                      }}
+                    >
+                      Contribute Now
+                    </Button>
+                    <Box fontSize="sm">
+                      <strong>All-or-nothing</strong>: If the campaign
+                      doesn&apos;t meet its funding goal, contributors will be
+                      eligible for a refund. STX and sBTC prices can fluctuate
+                      -- note that this fundraiser is considered successful if
+                      the USD goal is met at any point during the campaign.
+                    </Box>
+                  </Flex>
                 )}
               </Flex>
             ) : campaignFetchError ? (

@@ -14,6 +14,7 @@ interface CampaignInfo {
   donationCount: number;
   isExpired: boolean;
   isWithdrawn: boolean;
+  isGoalMet: boolean;
 }
 
 export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
@@ -44,8 +45,9 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
               result?.value?.value?.donationCount?.value,
               10
             ),
-            isExpired: result?.value?.value?.isExpired?.value === "true",
-            isWithdrawn: result?.value?.value?.isWithdrawn?.value === "true",
+            isExpired: result?.value?.value?.isExpired?.value,
+            isWithdrawn: result?.value?.value?.isWithdrawn?.value,
+            isGoalMet: result?.value?.value?.isGoalMet?.value,
           };
         } else {
           throw new Error("Error fetching campaign info from blockchain");
