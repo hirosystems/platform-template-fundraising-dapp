@@ -68,9 +68,10 @@
                         err-price-expired))
     (sbtc-price (unwrap! (contract-call? .price-feed get-sbtc-price)
                          err-price-expired))
-    ;; multiply by price first, then divide by 1000000 to preserve precision
-    (stx-value (/ (* (var-get total-stx) stx-price) u1000000))
-    (sbtc-value (* (var-get total-sbtc) sbtc-price))
+    ;; STX: divide by 1000000 to convert microstacks to STX, then divide by 100 for cents->dollars
+    (stx-value (/ (* (var-get total-stx) stx-price) u100000000))
+    ;; sBTC: divide by 100000000 to convert satoshis to BTC, then divide by 100 for cents->dollars 
+    (sbtc-value (/ (* (var-get total-sbtc) sbtc-price) u10000000000))
   )
     (ok (+ stx-value sbtc-value))))
 
