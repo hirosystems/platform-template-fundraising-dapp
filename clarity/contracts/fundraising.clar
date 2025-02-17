@@ -9,10 +9,12 @@
 (define-constant err-price-expired (err u103))
 (define-constant err-campaign-not-ended (err u104))
 (define-constant err-goal-met (err u105))
+(define-constant err-already-initialized (err u106))
 
 (define-constant default-duration u173000) ;; Duration in blocks. Default is if a block is 15 seconds, this is roughly 30 days.
 
 ;; Data vars
+(define-data-var is-campaign-initialized bool false)
 (define-data-var beneficiary principal contract-owner)
 (define-data-var campaign-duration uint u173000)
 (define-data-var campaign-start uint u0)
@@ -29,9 +31,12 @@
 
 ;; Initialize the campaign (goal is in US dollars)
 ;; Pass duration as 0 to use the default duration (~30 days)
+;; Can only be called once
 (define-public (initialize-campaign (goal uint) (duration uint))
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
+    (asserts! (not (var-get is-campaign-initialized)) err-already-initialized)
+    (var-set is-campaign-initialized true)
     (var-set campaign-start stacks-block-height)
     (var-set campaign-goal goal)
     (var-set campaign-duration duration)
@@ -40,7 +45,7 @@
       duration))
     (ok true)))
 
-;; Donate STX, amount in microstacks
+;; Donate STX. Pass amount in microstacks.
 (define-public (donate-stx (amount uint))
   (begin
     (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
@@ -53,7 +58,7 @@
     (var-set is-campaign-goal-met (unwrap-panic (is-goal-met)))
     (ok true)))
 
-;; Donate sBTC
+;; Donate sBTC. Pass amount in Satoshis.
 (define-public (donate-sbtc (amount uint))
   (begin
     (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 

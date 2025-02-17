@@ -91,7 +91,7 @@ If you make changes to your contract, you will need to push your changes and res
 
 1. Open your project in the Hiro Platform
 2. Click "Start Devnet" to initialize your testing environment (the contracts will be automatically deployed per your deployment plan)
-3. You should see your contracts deployed and the initial NFT mints occur no later than block 45 in the Devnet dashboard
+3. You should see your contracts deployed and the campaign initialization occur no later than block 45 in the Devnet dashboard
 
 ### 2. Testing Smart Contract Functions
 
@@ -106,13 +106,13 @@ Smart contract functions can be tested directly from your Platform dashboard.
 
 Remember that any changes to the contracts will require restarting Devnet and redeploying the contracts.
 
-### 3. NFT Marketplace Integration Testing
+### 3. Integration Testing
 
-With Devnet running, you can test your front-end functionality and validate that it's working in the same way you just tested the NFT contract functions.
+With Devnet running, you can test your front-end functionality and validate that it's working in the same way you just tested the fundraising functions.
 
 1. Confirm that your Devnet is running in the Platform dashboard and `npm run dev` is running in the front-end directory
-2. Navigate to [http://localhost:3000](http://localhost:3000) to view and interact with the marketplace
-3. View your NFTs in the marketplace and test the minting, listing, and purchasing functionality using the pre-funded wallets.
+2. Navigate to [http://localhost:3000](http://localhost:3000) to view and interact with the fundraising app
+3. View your campaign and test the contribution, refunding, and withdrawal functionality using the pre-funded wallets. Use the wallet picker in the upper right corner to choose between different test wallets.
 4. Navigate to the Devnet dashboard in the Platform to view the transactions as they are submitted and resolved on-chain.
 
 You do not need to restart Devnet to test changes to your front-end.
@@ -123,7 +123,7 @@ Once you've thoroughly tested your dApp in Devnet and are confident in its funct
 
 ### Moving to Testnet
 
-1. Plan how you will keep the price oracle updated - `price-feed.clar`'s `update-prices` function needs to be called regularly
+1. Plan how you will keep the price oracle updated - `price-feed.clar`'s `update-prices` function needs to be called regularly to keep the prices up-to-date. You can set up a script with access to a pre-funded wallet (to cover transaction fees) to make the calls.
 2. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
 3. Update the environment variables in your `.env` file to add values for `NEXT_PUBLIC_CONTRACT_DEPLOYER_TESTNET_ADDRESS` and `NEXT_PUBLIC_CONTRACT_DEPLOYER_MAINNET_ADDRESS`. Add the STX wallet address you plan to deploy the contract with.
 4. Deploy your contracts to the Testnet using the Platform dashboard and your deployment plan
@@ -133,7 +133,7 @@ Once you've thoroughly tested your dApp in Devnet and are confident in its funct
 
 ### Launching on Mainnet
 
-When you're ready to launch your NFT marketplace officially:
+When you're ready to launch your app:
 
 1. Ensure you have real STX tokens for deployment and transaction costs
 2. Update your deployment configuration to target Mainnet

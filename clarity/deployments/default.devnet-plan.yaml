@@ -56,5 +56,6 @@ plan:
             cost: 12910
             parameters:
               - u10000 # goal in dollars
-              - u12 # duration in blocks
+              - u0
+              # - u12 # duration in blocks, short for testing
       epoch: "3.0"
