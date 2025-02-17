@@ -10,9 +10,11 @@
 (define-constant err-campaign-not-ended (err u104))
 (define-constant err-goal-met (err u105))
 
+(define-constant default-duration u173000) ;; Duration in blocks. Default is if a block is 15 seconds, this is roughly 30 days.
+
 ;; Data vars
 (define-data-var beneficiary principal contract-owner)
-(define-data-var campaign-duration uint u173000) ;; Duration in blocks. Default is if a block is 15 seconds, this is roughly 30 days.
+(define-data-var campaign-duration uint u173000)
 (define-data-var campaign-start uint u0)
 (define-data-var campaign-goal uint u0)  ;; in cents USD
 (define-data-var is-campaign-goal-met bool false) ;; because crypto prices fluctuate, this is a switch that gets turned on if at any point during the campaign, a donation is made which meets the goal.
@@ -26,12 +28,16 @@
 (define-map sbtc-donations principal uint) ;; donor -> amount
 
 ;; Initialize the campaign (goal is in US dollars)
+;; Pass duration as 0 to use the default duration (~30 days)
 (define-public (initialize-campaign (goal uint) (duration uint))
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
     (var-set campaign-start stacks-block-height)
     (var-set campaign-goal goal)
     (var-set campaign-duration duration)
+    (var-set campaign-duration (if (is-eq duration u0) 
+      default-duration
+      duration))
     (ok true)))
 
 ;; Donate STX, amount in microstacks

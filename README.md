@@ -2,7 +2,7 @@
 
 ![Fundraising on Stacks](./screenshot.png)
 
-This is a simple crypto fundraising web page built on Stacks. It lets people run a ~1-month-long campaign to raise funds in STX and sBTC.
+This is a simple crypto fundraising web page built on Stacks. It lets people run a campaign to raise funds in STX and sBTC.
 
 ## Development
 
