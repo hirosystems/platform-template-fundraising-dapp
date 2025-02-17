@@ -1,5 +1,4 @@
 import { UseQueryResult, useQuery } from "@tanstack/react-query";
-import { TransactionsApi } from "@stacks/blockchain-api-client";
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
 import { cvToJSON, hexToCV, cvToHex, principalCV } from "@stacks/transactions";
@@ -118,24 +117,7 @@ export const useExistingDonation = (
       }
     },
     enabled: !!address,
+    refetchInterval: 30000,
     retry: false,
-  });
-};
-
-// Continuously query a transaction by txId until it is confirmed
-export const useGetTxId = (api: TransactionsApi, txId: string) => {
-  return useQuery({
-    queryKey: ["nftHoldingsByTxId", txId],
-    queryFn: async () => {
-      if (!txId) throw new Error("txId is required");
-      return api.getTransactionById({ txId });
-    },
-    enabled: !!txId,
-    refetchInterval: (data) => {
-      // @ts-expect-error tx_status exists
-      return data?.tx_status === "pending" ? 5000 : false;
-    },
-    retry: false,
-    refetchIntervalInBackground: true,
   });
 };

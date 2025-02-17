@@ -2,6 +2,9 @@
 **/settings/Mainnet.toml
 **/settings/Testnet.toml
 .cache/**
+!.cache/
+!.cache/requirements/
+!.cache/requirements/**
 history.txt
 
 logs
