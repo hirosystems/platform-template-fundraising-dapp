@@ -48,7 +48,7 @@ plan:
             cost: 12910
             parameters:
               - u100 # $1 STX price in cents
-              - u100000000 # $100k BTC price in cents
+              - u10000000 # $100k BTC price in cents
         - contract-call:
             contract-id: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM.fundraising
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM

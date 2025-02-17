@@ -71,6 +71,9 @@ export default function CampaignDetails({
   const { data: campaignInfo, error: campaignFetchError } = useCampaignInfo();
   const { data: currentBlock } = useCurrentBlock();
 
+  const campaignIsUninitialized = campaignInfo?.start === 0;
+  const campaignIsExpired = !campaignIsUninitialized && campaignInfo?.isExpired;
+
   const nextSlide = () => {
     setCurrentIndex((prevIndex) =>
       prevIndex === images.length - 1 ? 0 : prevIndex + 1
@@ -269,7 +272,13 @@ export default function CampaignDetails({
 
           {/* Right column: Campaign stats & donation */}
           <Box p={6} borderRadius="lg" borderWidth="1px">
-            {campaignInfo ? (
+            {campaignIsUninitialized ? (
+              <Flex direction="column" gap="4">
+                This campaign hasn&apos;t started yet!
+              </Flex>
+            ) : null}
+
+            {campaignInfo && !campaignIsUninitialized ? (
               <Flex direction="column" gap={6}>
                 <SimpleGrid columns={2} spacing={4}>
                   <Stat>
@@ -293,7 +302,7 @@ export default function CampaignDetails({
                     <StatLabel>Contributions</StatLabel>
                     <StatNumber>{campaignInfo?.donationCount}</StatNumber>
                     <StatHelpText>
-                      {campaignInfo?.isExpired ? (
+                      {campaignIsExpired ? (
                         <Flex direction="column">
                           <Box>
                             Campaign expired
@@ -348,7 +357,7 @@ export default function CampaignDetails({
                   />
                 </Box>
 
-                {campaignInfo?.isExpired ? (
+                {campaignIsExpired ? (
                   <Flex direction="column" gap="2">
                     <Box>
                       This fundraiser has ended.{" "}
@@ -470,11 +479,11 @@ export default function CampaignDetails({
                   </Box>
                 </Alert>
               </Box>
-            ) : (
+            ) : !campaignIsUninitialized ? (
               <Box w="full" textAlign="center">
                 <Spinner size="lg" />
               </Box>
-            )}
+            ) : null}
           </Box>
         </SimpleGrid>
 
