@@ -4,6 +4,8 @@
 
 This is a simple crypto fundraising web page built on Stacks. It lets people run a campaign to raise funds in STX and sBTC.
 
+This example app is intended for educational purposes only. The provided smart contracts have not been audited.
+
 ## Development
 
 To run this app with a Stacks Devnet (private development blockchain environment), follow these steps:
