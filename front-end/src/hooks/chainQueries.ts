@@ -1,14 +1,14 @@
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
 import { useQuery, UseQueryResult } from "@tanstack/react-query";
 
-export const useCurrentBlock = (): UseQueryResult<number> => {
+export const useCurrentBtcBlock = (): UseQueryResult<number> => {
   const api = getApi(getStacksUrl()).blocksApi;
   return useQuery<number>({
     queryKey: ["currentBlock"],
     queryFn: async () => {
       const response = await api.getBlocks({ limit: 1 });
 
-      const latestBlockHeight = response?.results?.[0]?.height;
+      const latestBlockHeight = response?.results?.[0]?.burn_block_height;
       if (latestBlockHeight) {
         return latestBlockHeight;
       } else {

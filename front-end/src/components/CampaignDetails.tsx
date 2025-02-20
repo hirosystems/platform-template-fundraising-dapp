@@ -32,7 +32,7 @@ import { useContext, useEffect, useState } from "react";
 import { CAMPAIGN_SUBTITLE, CAMPAIGN_TITLE } from "@/constants/campaign";
 import StyledMarkdown from "./StyledMarkdown";
 import { useCampaignInfo, useExistingDonation } from "@/hooks/campaignQueries";
-import { useCurrentBlock } from "@/hooks/chainQueries";
+import { useCurrentBtcBlock } from "@/hooks/chainQueries";
 import { format } from "timeago.js";
 import DonationModal from "./DonationModal";
 import HiroWalletContext from "./HiroWalletProvider";
@@ -69,7 +69,7 @@ export default function CampaignDetails({
   const slideSize = useBreakpointValue({ base: "100%", md: "500px" });
 
   const { data: campaignInfo, error: campaignFetchError } = useCampaignInfo();
-  const { data: currentBlock } = useCurrentBlock();
+  const { data: currentBlock } = useCurrentBtcBlock();
 
   const campaignIsUninitialized = campaignInfo?.start === 0;
   const campaignIsExpired = !campaignIsUninitialized && campaignInfo?.isExpired;
@@ -96,7 +96,7 @@ export default function CampaignDetails({
     : 0;
 
   const blocksLeft = campaignInfo ? campaignInfo?.end - (currentBlock || 0) : 0;
-  const secondsLeft = blocksLeft * 15; // estimate each block is 15 seconds
+  const secondsLeft = blocksLeft * 600; // estimate each block is 10 minutes
   const secondsLeftTimestamp = new Date(Date.now() - secondsLeft * 1000);
 
   const { data: previousDonation } = useExistingDonation(currentWalletAddress);
@@ -323,7 +323,7 @@ export default function CampaignDetails({
                       ) : (
                         <Flex direction="column">
                           <Box>
-                            {blocksLeft.toLocaleString()} blocks left
+                            {blocksLeft.toLocaleString()} BTC blocks left
                             <Tooltip
                               label={
                                 <Flex direction="column" gap="1">

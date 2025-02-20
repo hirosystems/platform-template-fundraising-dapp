@@ -94,6 +94,7 @@ If you make changes to your contract, you will need to push your changes and res
 1. Open your project in the Hiro Platform
 2. Click "Start Devnet" to initialize your testing environment (the contracts will be automatically deployed per your deployment plan)
 3. You should see your contracts deployed and the campaign initialization occur no later than block 45 in the Devnet dashboard
+4. If you want to use accurate price values for converting STX and sBTC to USD, make sure the oracle contract is being called appropriately (see `clarity/contracts/price-feed.clar`). The initial values are set within your `clarity/deployments/default.devnet-plan.yaml` in a `contract-call` step after the deploys.
 
 ### 2. Testing Smart Contract Functions
 

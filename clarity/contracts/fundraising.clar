@@ -11,7 +11,7 @@
 (define-constant err-goal-met (err u105))
 (define-constant err-already-initialized (err u106))
 
-(define-constant default-duration u173000) ;; Duration in blocks. Default is if a block is 15 seconds, this is roughly 30 days.
+(define-constant default-duration u4320) ;; Duration in *Bitcoin* blocks. This default value means is if a block is 10 minutes, this is roughly 30 days.
 
 ;; Data vars
 (define-data-var is-campaign-initialized bool false)
@@ -37,7 +37,7 @@
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
     (asserts! (not (var-get is-campaign-initialized)) err-already-initialized)
     (var-set is-campaign-initialized true)
-    (var-set campaign-start stacks-block-height)
+    (var-set campaign-start burn-block-height)
     (var-set campaign-goal goal)
     (var-set campaign-duration duration)
     (var-set campaign-duration (if (is-eq duration u0) 
@@ -48,7 +48,7 @@
 ;; Donate STX. Pass amount in microstacks.
 (define-public (donate-stx (amount uint))
   (begin
-    (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
+    (asserts! (< burn-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
               err-campaign-ended)
     (try! (stx-transfer? amount tx-sender (as-contract tx-sender)))
     (map-set stx-donations tx-sender 
@@ -61,7 +61,7 @@
 ;; Donate sBTC. Pass amount in Satoshis.
 (define-public (donate-sbtc (amount uint))
   (begin
-    (asserts! (< stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
+    (asserts! (< burn-block-height (+ (var-get campaign-start) (var-get campaign-duration))) 
               err-campaign-ended)
     (try! (contract-call? 'SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token transfer
       amount 
@@ -103,7 +103,7 @@
     (total-sbtc-amount (var-get total-sbtc))
   )
     (asserts! (is-eq tx-sender (var-get beneficiary)) err-not-authorized)
-    (asserts! (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
+    (asserts! (>= burn-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
               err-campaign-not-ended)
     (asserts! (var-get is-campaign-goal-met) err-goal-not-met)
     (as-contract
@@ -129,7 +129,7 @@
     (sbtc-amount (default-to u0 (map-get? sbtc-donations tx-sender)))
     (contributor tx-sender)
   )
-    (asserts! (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
+    (asserts! (>= burn-block-height (+ (var-get campaign-start) (var-get campaign-duration)))
               err-campaign-not-ended)
     (asserts! (not (var-get is-campaign-goal-met)) err-goal-met)
     (if (> stx-amount u0)
@@ -166,7 +166,7 @@
     totalSbtc: (var-get total-sbtc),
     usdValue: (unwrap-panic (get-total-usd)),
     donationCount: (var-get donation-count),
-    isExpired: (>= stacks-block-height (+ (var-get campaign-start) (var-get campaign-duration))),
+    isExpired: (>= burn-block-height (+ (var-get campaign-start) (var-get campaign-duration))),
     isWithdrawn: (var-get is-campaign-withdrawn),
     isGoalMet: (var-get is-campaign-goal-met)
   }))

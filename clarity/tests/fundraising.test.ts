@@ -24,7 +24,7 @@ describe("fundraising campaign", () => {
       [Cl.uint(stxPrice), Cl.uint(btcPrice)],
       deployer
     );
-    const block = simnet.blockHeight;
+    const block = simnet.burnBlockHeight;
     return { response, block };
   };
   // helper to set up a basic campaign
@@ -32,10 +32,10 @@ describe("fundraising campaign", () => {
     const response = await simnet.callPublicFn(
       "fundraising",
       "initialize-campaign",
-      [Cl.uint(goal)],
+      [Cl.uint(goal), Cl.uint(0)],
       deployer
     );
-    const block = simnet.blockHeight;
+    const block = simnet.burnBlockHeight;
 
     return { response, block };
   };
@@ -109,7 +109,7 @@ describe("fundraising campaign", () => {
     const response = await simnet.callPublicFn(
       "fundraising",
       "initialize-campaign",
-      [Cl.uint(100000)],
+      [Cl.uint(100000), Cl.uint(0)],
       donor1
     );
     expect(response.result).toBeErr(Cl.uint(100)); // err-not-authorized
@@ -149,7 +149,7 @@ describe("fundraising campaign", () => {
     const { block } = await initCampaign(100000);
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -188,7 +188,7 @@ describe("fundraising campaign", () => {
     await initCampaign(10000);
 
     const originalDeployerBalance = getCurrentStxBalance(deployer);
-    const donationAmount = BigInt(150000000); // Donation in microstacks = 15,000 stx
+    const donationAmount = BigInt(15000000000); // Donation in microstacks = 15,000 stx
 
     // make a donation to meet goal
     await simnet.callPublicFn(
@@ -199,7 +199,7 @@ describe("fundraising campaign", () => {
     );
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -230,7 +230,7 @@ describe("fundraising campaign", () => {
     );
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -248,7 +248,7 @@ describe("fundraising campaign", () => {
     await initCampaign(100000);
 
     const originalDonorBalance = getCurrentStxBalance(donor1);
-    const donationAmount = BigInt(50000000); // 5000 STX, in microstacks
+    const donationAmount = BigInt(5000000000); // Donation in microstacks = 5,000 stx
 
     // make a donation, but don't meet the goal
     await simnet.callPublicFn(
@@ -264,7 +264,7 @@ describe("fundraising campaign", () => {
     );
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -301,12 +301,12 @@ describe("fundraising campaign", () => {
     await simnet.callPublicFn(
       "fundraising",
       "donate-stx",
-      [Cl.uint(150000000)], // donation in microstacks
+      [Cl.uint(15000000000)], // donation in microstacks
       donor1
     );
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -333,7 +333,7 @@ describe("fundraising campaign", () => {
     expect(response.result.value).toEqual(
       Cl.tuple({
         start: Cl.uint(block),
-        end: Cl.uint(block + 173000),
+        end: Cl.uint(block + 4320),
         goal: Cl.uint(100000),
         totalStx: Cl.uint(0),
         totalSbtc: Cl.uint(0),
@@ -341,11 +341,12 @@ describe("fundraising campaign", () => {
         donationCount: Cl.uint(0),
         isExpired: Cl.bool(false),
         isWithdrawn: Cl.bool(false),
+        isGoalMet: Cl.bool(false),
       })
     );
 
     // check again after a donation
-    const donationAmount = BigInt(50000000); // 5000 STX, in microstacks
+    const donationAmount = BigInt(5000000000); // 5000 STX, in microstacks
     await simnet.callPublicFn(
       "fundraising",
       "donate-stx",
@@ -363,7 +364,7 @@ describe("fundraising campaign", () => {
     expect(response2.result.value).toEqual(
       Cl.tuple({
         start: Cl.uint(block),
-        end: Cl.uint(block + 173000),
+        end: Cl.uint(block + 4320),
         goal: Cl.uint(100000),
         totalStx: Cl.uint(donationAmount),
         totalSbtc: Cl.uint(0),
@@ -371,11 +372,12 @@ describe("fundraising campaign", () => {
         donationCount: Cl.uint(1),
         isExpired: Cl.bool(false),
         isWithdrawn: Cl.bool(false),
+        isGoalMet: Cl.bool(false),
       })
     );
 
     // move past campaign duration
-    await simnet.mineEmptyBlocks(173001);
+    await simnet.mineEmptyBlocks(4321);
     // ensure prices are up to date
     await initPrices();
 
@@ -387,10 +389,10 @@ describe("fundraising campaign", () => {
       deployer
     );
 
-    expect(response2.result.value).toEqual(
+    expect(response3.result.value).toEqual(
       Cl.tuple({
         start: Cl.uint(block),
-        end: Cl.uint(block + 173000),
+        end: Cl.uint(block + 4320),
         goal: Cl.uint(100000),
         totalStx: Cl.uint(donationAmount),
         totalSbtc: Cl.uint(0),
@@ -398,6 +400,7 @@ describe("fundraising campaign", () => {
         donationCount: Cl.uint(1),
         isExpired: Cl.bool(true),
         isWithdrawn: Cl.bool(false),
+        isGoalMet: Cl.bool(false),
       })
     );
   });
