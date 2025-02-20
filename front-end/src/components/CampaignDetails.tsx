@@ -139,7 +139,7 @@ export default function CampaignDetails({
       const txOptions = getInitializeTx(
         getStacksNetworkString(),
         currentWalletAddress || "",
-        Number(goal) * 100
+        Number(goal)
       );
 
       // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension

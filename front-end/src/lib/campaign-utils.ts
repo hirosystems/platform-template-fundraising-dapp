@@ -61,7 +61,7 @@ export const getContributeSbtcTx = (
 export const getInitializeTx = (
   network: Network,
   address: string,
-  goalInCents: number
+  goalInUSD: number
 ): ContractCallRegularOptions => {
   return {
     anchorMode: AnchorMode.Any,
@@ -70,7 +70,7 @@ export const getInitializeTx = (
     contractName: FUNDRAISING_CONTRACT.name,
     network,
     functionName: "initialize-campaign",
-    functionArgs: [uintCV(goalInCents), uintCV(0)],
+    functionArgs: [uintCV(goalInUSD), uintCV(0)],
     postConditions: [Pc.principal(address).willSendEq(0).ustx()],
   };
 };

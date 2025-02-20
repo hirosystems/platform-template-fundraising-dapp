@@ -18,7 +18,7 @@
 (define-data-var beneficiary principal contract-owner)
 (define-data-var campaign-duration uint u173000)
 (define-data-var campaign-start uint u0)
-(define-data-var campaign-goal uint u0)  ;; in cents USD
+(define-data-var campaign-goal uint u0)
 (define-data-var is-campaign-goal-met bool false) ;; because crypto prices fluctuate, this is a switch that gets turned on if at any point during the campaign, a donation is made which meets the goal.
 (define-data-var total-stx uint u0) ;; in microstacks
 (define-data-var total-sbtc uint u0) ;; in sats
@@ -29,7 +29,7 @@
 (define-map stx-donations principal uint)  ;; donor -> amount
 (define-map sbtc-donations principal uint) ;; donor -> amount
 
-;; Initialize the campaign (goal is in US dollars -- provide it in *cents*)
+;; Initialize the campaign (goal is in US dollars)
 ;; Pass duration as 0 to use the default duration (~30 days)
 ;; Can only be called once
 (define-public (initialize-campaign (goal uint) (duration uint))
