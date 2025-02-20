@@ -21,6 +21,8 @@ import {
   Spinner,
   Tooltip,
   useToast,
+  NumberInput,
+  NumberInputField,
 } from "@chakra-ui/react";
 import {
   CheckCircleIcon,
@@ -44,7 +46,11 @@ import {
 } from "@/lib/contract-utils";
 import { satsToSbtc, ustxToStx } from "@/lib/currency-utils";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
-import { getRefundTx, getWithdrawTx } from "@/lib/campaign-utils";
+import {
+  getInitializeTx,
+  getRefundTx,
+  getWithdrawTx,
+} from "@/lib/campaign-utils";
 import { getStacksNetworkString } from "@/lib/stacks-api";
 import { openContractCall } from "@stacks/connect";
 
@@ -73,6 +79,11 @@ export default function CampaignDetails({
 
   const campaignIsUninitialized = campaignInfo?.start === 0;
   const campaignIsExpired = !campaignIsUninitialized && campaignInfo?.isExpired;
+
+  const [goal, setGoal] = useState("");
+  const handleGoalChange = (value: string) => {
+    setGoal(value);
+  };
 
   const nextSlide = () => {
     setCurrentIndex((prevIndex) =>
@@ -106,6 +117,61 @@ export default function CampaignDetails({
     (previousDonation?.stxAmount > 0 || previousDonation?.sbtcAmount > 0);
 
   const toast = useToast();
+
+  const handleInitializeCampaign = async () => {
+    const doSuccessToast = (txid: string) => {
+      toast({
+        title: "Campaign initialized",
+        description: (
+          <Flex direction="column" gap="4">
+            <Box fontSize="xs">
+              Transaction ID: <strong>{txid}</strong>
+            </Box>
+          </Flex>
+        ),
+        status: "success",
+        isClosable: true,
+        duration: 30000,
+      });
+    };
+
+    try {
+      const txOptions = getInitializeTx(
+        getStacksNetworkString(),
+        currentWalletAddress || "",
+        Number(goal) * 100
+      );
+
+      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
+      if (isDevnetEnvironment()) {
+        const { txid } = await executeContractCall(txOptions, devnetWallet);
+        doSuccessToast(txid);
+      } else {
+        await openContractCall({
+          ...txOptions,
+          onFinish: (data) => {
+            doSuccessToast(data.txId);
+          },
+          onCancel: () => {
+            toast({
+              title: "Cancelled",
+              description: "Transaction was cancelled",
+              status: "info",
+              duration: 3000,
+            });
+          },
+        });
+      }
+      setGoal("");
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "Error",
+        description: "Failed to request refund",
+        status: "error",
+      });
+    }
+  };
 
   const handleRefund = async () => {
     const doSuccessToast = (txid: string) => {
@@ -275,6 +341,41 @@ export default function CampaignDetails({
             {campaignIsUninitialized ? (
               <Flex direction="column" gap="4">
                 This campaign hasn&apos;t started yet!
+                {currentWalletAddress === FUNDRAISING_CONTRACT.address ? (
+                  <Alert mb="4" colorScheme="gray">
+                    <Box>
+                      <AlertTitle>This is your fundraiser.</AlertTitle>
+                      <AlertDescription>
+                        <Flex direction="column" gap="2">
+                          <Box mb="1">
+                            Do you want to start it now? It will be open for
+                            contributions and will run for 4,320 BTC blocks, or
+                            about 30 days.
+                          </Box>
+                          <NumberInput
+                            bg="white"
+                            min={1}
+                            value={goal}
+                            onChange={handleGoalChange}
+                          >
+                            <NumberInputField
+                              placeholder="Enter goal (USD)"
+                              textAlign="center"
+                              fontSize="lg"
+                            />
+                          </NumberInput>
+                          <Button
+                            colorScheme="green"
+                            onClick={handleInitializeCampaign}
+                            isDisabled={!goal}
+                          >
+                            Start campaign for ${Number(goal).toLocaleString()}
+                          </Button>
+                        </Flex>
+                      </AlertDescription>
+                    </Box>
+                  </Alert>
+                ) : null}
               </Flex>
             ) : null}
 

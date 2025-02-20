@@ -160,6 +160,8 @@ export default function DonationModal({
           },
         });
       }
+      setCustomAmount("");
+      setSelectedAmount(null);
     } catch (e) {
       console.error(e);
       toast({

@@ -29,7 +29,7 @@
 (define-map stx-donations principal uint)  ;; donor -> amount
 (define-map sbtc-donations principal uint) ;; donor -> amount
 
-;; Initialize the campaign (goal is in US dollars)
+;; Initialize the campaign (goal is in US dollars -- provide it in *cents*)
 ;; Pass duration as 0 to use the default duration (~30 days)
 ;; Can only be called once
 (define-public (initialize-campaign (goal uint) (duration uint))

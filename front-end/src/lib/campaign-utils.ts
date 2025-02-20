@@ -58,6 +58,23 @@ export const getContributeSbtcTx = (
   };
 };
 
+export const getInitializeTx = (
+  network: Network,
+  address: string,
+  goalInCents: number
+): ContractCallRegularOptions => {
+  return {
+    anchorMode: AnchorMode.Any,
+    postConditionMode: PostConditionMode.Deny,
+    contractAddress: FUNDRAISING_CONTRACT.address || "",
+    contractName: FUNDRAISING_CONTRACT.name,
+    network,
+    functionName: "initialize-campaign",
+    functionArgs: [uintCV(goalInCents), uintCV(0)],
+    postConditions: [Pc.principal(address).willSendEq(0).ustx()],
+  };
+};
+
 export const getRefundTx = (
   network: Network,
   address: string
