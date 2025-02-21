@@ -77,6 +77,7 @@ export default function CampaignAdminControls({
   };
 
   const handleCancel = async () => {
+    setIsCancelConfirmationModalOpen(false);
     const txOptions = getCancelTx(
       getStacksNetworkString(),
       currentWalletAddress || ""
