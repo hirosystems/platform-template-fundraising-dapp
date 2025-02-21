@@ -56,6 +56,7 @@ export const executeContractCall = async (
   });
 
   if ("error" in response) {
+    console.error(response.error);
     throw new Error(response.error || "Transaction failed");
   }
 

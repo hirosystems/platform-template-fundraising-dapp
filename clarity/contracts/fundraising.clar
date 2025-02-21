@@ -50,7 +50,7 @@
 ;; Only the owner can call this, at any time during or after the campaign
 ;; Allows donors to get a refund
 ;; Can only be called once
-(define-public (cancel-campaign (goal uint) (duration uint))
+(define-public (cancel-campaign)
   (begin
     (asserts! (is-eq tx-sender contract-owner) err-not-authorized)
     (asserts! (var-get is-campaign-initialized) err-not-initialized)

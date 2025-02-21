@@ -68,7 +68,7 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
         );
       }
     },
-    refetchInterval: 30000,
+    refetchInterval: 10000,
     retry: false,
   });
 };
@@ -128,7 +128,7 @@ export const useExistingDonation = (
       }
     },
     enabled: !!address,
-    refetchInterval: 30000,
+    refetchInterval: 10000,
     retry: false,
   });
 };
