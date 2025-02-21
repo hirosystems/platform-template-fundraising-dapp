@@ -9,17 +9,6 @@ plan:
     - id: 0
       transactions:
         - requirement-publish:
-            contract-id: SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 64640
-            path: "./.cache/requirements/SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2.clar"
-            clarity-version: 2
-      epoch: "2.4"
-    - id: 1
-      transactions:
-        - requirement-publish:
             contract-id: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry
             remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             remap-principals:
@@ -35,49 +24,6 @@ plan:
             cost: 47590
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token.clar"
             clarity-version: 3
-      epoch: "3.0"
-    - id: 2
-      transactions:
-        - requirement-publish:
-            contract-id: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.wormhole-traits-v1
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 7070
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.wormhole-traits-v1.clar"
-            clarity-version: 3
-        - requirement-publish:
-            contract-id: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-traits-v1
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 20710
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-traits-v1.clar"
-            clarity-version: 3
-        - requirement-publish:
-            contract-id: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-governance-v2
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 266550
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-governance-v2.clar"
-            clarity-version: 3
-        - requirement-publish:
-            contract-id: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 35980
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3.clar"
-            clarity-version: 3
-        - requirement-publish:
-            contract-id: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3
-            remap-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            remap-principals:
-              SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            cost: 46140
-            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3.clar"
-            clarity-version: 3
         - contract-publish:
             contract-name: fundraising
             expected-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
@@ -85,4 +31,4 @@ plan:
             path: contracts/fundraising.clar
             anchor-block-only: true
             clarity-version: 3
-      epoch: "3.1"
+      epoch: "3.0"
