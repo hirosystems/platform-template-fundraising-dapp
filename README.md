@@ -57,23 +57,15 @@ When you're ready to deploy in Testnet or Mainnet, you can choose to add similar
 
 ## About the Smart Contracts
 
-This contract uses a [Stacks<>Pyth bridge](https://github.com/Trust-Machines/stacks-pyth-bridge) to get current token prices.
-
-This app is built with two Clarity contracts that work together:
+This app uses a Clarity smart contract which handles the collection of funds.
 
 ### `fundraising.clar`
-
-Handles the core campaign logic.
 
 - Allows the contract owner to initialize the campaign with a fundraising goal in USD
 - Accepts donations in STX or sBTC
 - Tracks individual contributions
-- Allows refunds to donors if the goal isn't hit after 30 days
 - Lets the beneficiary (contract owner) withdraw the raised funds if the goal is hit
-
-The fundraising contract uses the price feed to convert crypto donations into USD value to check if campaigns hit their goals.
-
-When you deploy this app to Testnet/Mainnet, you will need to define a script that calls `price-feed.clar`'s `update-prices` function regularly to keep the prices updated. You'll need to have a wallet funded to cover transaction fees for these updates. (For Devnet, the prices are automatically initialized in the Devnet deployment plan at `clarity/deployments/default.devnet-plan.yaml`.)
+- Allows the beneficiary to cancel the campaign and refund the contributions to the donors at any point
 
 ## Testing with Devnet
 
@@ -87,8 +79,7 @@ If you make changes to your contract, you will need to push your changes and res
 
 1. Open your project in the Hiro Platform
 2. Click "Start Devnet" to initialize your testing environment (the contracts will be automatically deployed per your deployment plan)
-3. You should see your contracts deployed and the campaign initialization occur no later than block 45 in the Devnet dashboard
-4. If you want to use accurate price values for converting STX and sBTC to USD, make sure the oracle contract is being called appropriately (see `clarity/contracts/price-feed.clar`). The initial values are set within your `clarity/deployments/default.devnet-plan.yaml` in a `contract-call` step after the deploys.
+3. You should see your contracts deployed no later than block 45 in the Devnet dashboard
 
 ### 2. Testing Smart Contract Functions
 
@@ -120,13 +111,11 @@ Once you've thoroughly tested your dApp in Devnet and are confident in its funct
 
 ### Moving to Testnet
 
-1. Plan how you will keep the price oracle updated - `price-feed.clar`'s `update-prices` function needs to be called regularly to keep the prices up-to-date. You can set up a script with access to a pre-funded wallet (to cover transaction fees) to make the calls.
-2. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
+1. Use the [Stacks Testnet Faucet](https://explorer.hiro.so/sandbox/faucet?chain=testnet) to get test STX tokens
 3. Update the environment variables in your `.env` file to add values for `NEXT_PUBLIC_CONTRACT_DEPLOYER_TESTNET_ADDRESS` and `NEXT_PUBLIC_CONTRACT_DEPLOYER_MAINNET_ADDRESS`. Add the STX wallet address you plan to deploy the contract with.
 4. Deploy your contracts to the Testnet using the Platform dashboard and your deployment plan
-5. Call `fundraising.initialize-campaign` on-chain
-6. Test your application with real network conditions and transaction times
-7. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
+5. Test your application with real network conditions and transaction times
+6. Verify your contract interactions in the [Testnet Explorer](https://explorer.hiro.so/?chain=testnet)
 
 ### Launching on Mainnet
 
@@ -135,8 +124,7 @@ When you're ready to launch your app:
 1. Ensure you have real STX tokens for deployment and transaction costs
 2. Update your deployment configuration to target Mainnet
 3. Deploy your contracts through the Platform dashboard
-4. Call `fundraising.initialize-campaign` on-chain
-5. Update your frontend environment variables to point to Mainnet
-6. Launch your application and begin processing real transactions!
+4. Update your frontend environment variables to point to Mainnet
+5. Launch your application and begin processing real transactions!
 
 Remember: Mainnet deployments are permanent and involve real cryptocurrency transactions. Double-check all contract code and frontend integrations before deploying to Mainnet.

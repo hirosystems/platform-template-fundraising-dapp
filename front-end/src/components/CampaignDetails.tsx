@@ -20,16 +20,10 @@ import {
   AlertDescription,
   Spinner,
   Tooltip,
-  useToast,
   NumberInput,
   NumberInputField,
 } from "@chakra-ui/react";
-import {
-  CheckCircleIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  InfoIcon,
-} from "@chakra-ui/icons";
+import { ChevronLeftIcon, ChevronRightIcon, InfoIcon } from "@chakra-ui/icons";
 import { useContext, useEffect, useState } from "react";
 import { CAMPAIGN_SUBTITLE, CAMPAIGN_TITLE } from "@/constants/campaign";
 import StyledMarkdown from "./StyledMarkdown";
@@ -40,19 +34,19 @@ import DonationModal from "./DonationModal";
 import HiroWalletContext from "./HiroWalletProvider";
 import { useDevnetWallet } from "@/lib/devnet-wallet-context";
 import {
-  executeContractCall,
   isDevnetEnvironment,
   isTestnetEnvironment,
 } from "@/lib/contract-utils";
 import { satsToSbtc, ustxToStx } from "@/lib/currency-utils";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
 import {
+  getCancelTx,
   getInitializeTx,
   getRefundTx,
   getWithdrawTx,
 } from "@/lib/campaign-utils";
 import { getStacksNetworkString } from "@/lib/stacks-api";
-import { openContractCall } from "@stacks/connect";
+import useTransactionExecuter from "@/hooks/useTransactionExecuter";
 
 export default function CampaignDetails({
   images,
@@ -79,6 +73,8 @@ export default function CampaignDetails({
 
   const campaignIsUninitialized = campaignInfo?.start === 0;
   const campaignIsExpired = !campaignIsUninitialized && campaignInfo?.isExpired;
+  const campaignIsCancelled =
+    !campaignIsUninitialized && campaignInfo?.isCancelled;
 
   const [goal, setGoal] = useState("");
   const handleGoalChange = (value: string) => {
@@ -116,167 +112,60 @@ export default function CampaignDetails({
     previousDonation &&
     (previousDonation?.stxAmount > 0 || previousDonation?.sbtcAmount > 0);
 
-  const toast = useToast();
+  const executeTx = useTransactionExecuter();
 
   const handleInitializeCampaign = async () => {
-    const doSuccessToast = (txid: string) => {
-      toast({
-        title: "Campaign initialized",
-        description: (
-          <Flex direction="column" gap="4">
-            <Box fontSize="xs">
-              Transaction ID: <strong>{txid}</strong>
-            </Box>
-          </Flex>
-        ),
-        status: "success",
-        isClosable: true,
-        duration: 30000,
-      });
-    };
+    const txOptions = getInitializeTx(
+      getStacksNetworkString(),
+      currentWalletAddress || "",
+      Number(goal)
+    );
+    await executeTx(
+      txOptions,
+      devnetWallet,
+      "Campaign was initialized",
+      "Campaign was not initialized"
+    );
+    setGoal("");
+  };
 
-    try {
-      const txOptions = getInitializeTx(
-        getStacksNetworkString(),
-        currentWalletAddress || "",
-        Number(goal)
-      );
-
-      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
-      if (isDevnetEnvironment()) {
-        const { txid } = await executeContractCall(txOptions, devnetWallet);
-        doSuccessToast(txid);
-      } else {
-        await openContractCall({
-          ...txOptions,
-          onFinish: (data) => {
-            doSuccessToast(data.txId);
-          },
-          onCancel: () => {
-            toast({
-              title: "Cancelled",
-              description: "Transaction was cancelled",
-              status: "info",
-              duration: 3000,
-            });
-          },
-        });
-      }
-      setGoal("");
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: "Error",
-        description: "Failed to request refund",
-        status: "error",
-      });
-    }
+  const handleCancel = async () => {
+    const txOptions = getCancelTx(
+      getStacksNetworkString(),
+      currentWalletAddress || ""
+    );
+    await executeTx(
+      txOptions,
+      devnetWallet,
+      "Campaign cancellation was requested",
+      "Campaign was not cancelled"
+    );
   };
 
   const handleRefund = async () => {
-    const doSuccessToast = (txid: string) => {
-      toast({
-        title: "Refund requested",
-        description: (
-          <Flex direction="column" gap="4">
-            <Box fontSize="xs">
-              Transaction ID: <strong>{txid}</strong>
-            </Box>
-          </Flex>
-        ),
-        status: "success",
-        isClosable: true,
-        duration: 30000,
-      });
-    };
-
-    try {
-      const txOptions = getRefundTx(
-        getStacksNetworkString(),
-        currentWalletAddress || ""
-      );
-
-      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
-      if (isDevnetEnvironment()) {
-        const { txid } = await executeContractCall(txOptions, devnetWallet);
-        doSuccessToast(txid);
-      } else {
-        await openContractCall({
-          ...txOptions,
-          onFinish: (data) => {
-            doSuccessToast(data.txId);
-          },
-          onCancel: () => {
-            toast({
-              title: "Cancelled",
-              description: "Transaction was cancelled",
-              status: "info",
-              duration: 3000,
-            });
-          },
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: "Error",
-        description: "Failed to request refund",
-        status: "error",
-      });
-    }
+    const txOptions = getRefundTx(
+      getStacksNetworkString(),
+      currentWalletAddress || ""
+    );
+    await executeTx(
+      txOptions,
+      devnetWallet,
+      "Refund requested",
+      "Refund not requested"
+    );
   };
 
   const handleWithdraw = async () => {
-    const doSuccessToast = (txid: string) => {
-      toast({
-        title: "Withdraw requested",
-        description: (
-          <Flex direction="column" gap="4">
-            <Box fontSize="xs">
-              Transaction ID: <strong>{txid}</strong>
-            </Box>
-          </Flex>
-        ),
-        status: "success",
-        isClosable: true,
-        duration: 30000,
-      });
-    };
-
-    try {
-      const txOptions = getWithdrawTx(
-        getStacksNetworkString(),
-        currentWalletAddress || ""
-      );
-
-      // Devnet uses direct call, Testnet/Mainnet needs to prompt with browser extension
-      if (isDevnetEnvironment()) {
-        const { txid } = await executeContractCall(txOptions, devnetWallet);
-        doSuccessToast(txid);
-      } else {
-        await openContractCall({
-          ...txOptions,
-          onFinish: (data) => {
-            doSuccessToast(data.txId);
-          },
-          onCancel: () => {
-            toast({
-              title: "Cancelled",
-              description: "Transaction was cancelled",
-              status: "info",
-              duration: 3000,
-            });
-          },
-        });
-      }
-    } catch (e) {
-      console.error(e);
-      toast({
-        title: "Error",
-        description: "Failed to request refund",
-        status: "error",
-      });
-    }
+    const txOptions = getWithdrawTx(
+      getStacksNetworkString(),
+      currentWalletAddress || ""
+    );
+    await executeTx(
+      txOptions,
+      devnetWallet,
+      "Withdraw requested",
+      "Withdraw not requested"
+    );
   };
 
   return (
@@ -341,12 +230,17 @@ export default function CampaignDetails({
             {campaignIsUninitialized ? (
               <Flex direction="column" gap="4">
                 This campaign hasn&apos;t started yet!
-                {currentWalletAddress === FUNDRAISING_CONTRACT.address ? (
-                  <Alert mb="4" colorScheme="gray">
-                    <Box>
-                      <AlertTitle>This is your fundraiser.</AlertTitle>
-                      <AlertDescription>
-                        <Flex direction="column" gap="2">
+              </Flex>
+            ) : null}
+
+            {currentWalletAddress === FUNDRAISING_CONTRACT.address ? (
+              <Alert mb="4" colorScheme="gray">
+                <Box>
+                  <AlertTitle>This is your fundraiser.</AlertTitle>
+                  <AlertDescription>
+                    <Flex direction="column" gap="2">
+                      {campaignIsUninitialized ? (
+                        <>
                           <Box mb="1">
                             Do you want to start it now? It will be open for
                             contributions and will run for 4,320 BTC blocks, or
@@ -371,12 +265,52 @@ export default function CampaignDetails({
                           >
                             Start campaign for ${Number(goal).toLocaleString()}
                           </Button>
+                        </>
+                      ) : (
+                        <Flex direction="column">
+                          {/* Cancelled campaign - cannot withdraw or cancel */}
+                          {campaignIsCancelled ? (
+                            <Box>
+                              You have cancelled this campaign. Contributions
+                              are eligible for a refund.
+                            </Box>
+                          ) : (
+                            // Uncancelled campaign - controls to withdraw or cancel
+                            <Flex direction="column" gap="2">
+                              {campaignIsExpired ? ( // Withdrawal controls are only displayed for expired campaigns
+                                <>
+                                  {campaignInfo?.isWithdrawn ? (
+                                    <Box>
+                                      You have already withdrawn the funds. Good
+                                      luck!
+                                    </Box>
+                                  ) : (
+                                    <Button
+                                      colorScheme="green"
+                                      onClick={handleWithdraw}
+                                    >
+                                      Withdraw funds
+                                    </Button>
+                                  )}
+                                </>
+                              ) : null}
+                              <Box>
+                                Do you want to cancel this fundraiser? Any
+                                contributions so far will be eligible for a
+                                refund, and this campaign will no longer accept
+                                new donations.
+                              </Box>
+                              <Button colorScheme="gray" onClick={handleCancel}>
+                                Cancel campaign
+                              </Button>
+                            </Flex>
+                          )}
                         </Flex>
-                      </AlertDescription>
-                    </Box>
-                  </Alert>
-                ) : null}
-              </Flex>
+                      )}
+                    </Flex>
+                  </AlertDescription>
+                </Box>
+              </Alert>
             ) : null}
 
             {campaignInfo && !campaignIsUninitialized ? (
@@ -390,14 +324,6 @@ export default function CampaignDetails({
                     <StatHelpText>
                       of ${campaignInfo?.goal?.toLocaleString()} goal
                     </StatHelpText>
-                    {campaignInfo?.isGoalMet ? (
-                      <StatHelpText color="green.700">
-                        <Tooltip label="Since crypto prices can fluctuate, the fundraiser is considered successful if the USD goal is met at any point during the campaign.">
-                          <CheckCircleIcon mr="0.5" mt="-0.5" /> This campaign
-                          met its goal!
-                        </Tooltip>
-                      </StatHelpText>
-                    ) : null}
                   </Stat>
                   <Stat>
                     <StatLabel>Contributions</StatLabel>
@@ -458,13 +384,14 @@ export default function CampaignDetails({
                   />
                 </Box>
 
-                {campaignIsExpired ? (
+                {campaignIsExpired || campaignIsCancelled ? (
                   <Flex direction="column" gap="2">
                     <Box>
-                      This fundraiser has ended.{" "}
-                      {campaignInfo?.isGoalMet
-                        ? "It met its goal!"
-                        : "It did not meet its goal. Contributors are eligible for a refund."}
+                      This fundraiser{" "}
+                      {campaignIsCancelled ? "was cancelled" : "has ended"}.
+                      {campaignIsCancelled
+                        ? " Contributors are eligible for a refund."
+                        : null}
                     </Box>
                     {hasMadePreviousDonation ? (
                       <Alert mb="4">
@@ -487,11 +414,8 @@ export default function CampaignDetails({
                             </Box>
                           </AlertDescription>
                           <Box mt="4">
-                            {campaignInfo?.isGoalMet ? (
-                              <Box>
-                                Thanks for your contribution! This fundraiser
-                                met its funding goal. 🎉
-                              </Box>
+                            {!campaignIsCancelled ? (
+                              <Box>Thanks for your contribution!</Box>
                             ) : (
                               <Button
                                 colorScheme="green"
@@ -509,11 +433,10 @@ export default function CampaignDetails({
                         <Box>
                           <AlertTitle>This is your fundraiser.</AlertTitle>
                           <AlertDescription>
-                            {campaignInfo?.isGoalMet ? (
-                              <>
-                                <Box mb="1">
-                                  Congratulations on meeting your funding goal!
-                                </Box>
+                            {campaignIsCancelled ? (
+                              <Box>You have cancelled this campaign.</Box>
+                            ) : (
+                              <Flex direction="column" gap="2">
                                 {campaignInfo.isWithdrawn ? (
                                   <Box>
                                     You have already withdrawn the funds. Good
@@ -527,13 +450,7 @@ export default function CampaignDetails({
                                     Withdraw funds
                                   </Button>
                                 )}
-                              </>
-                            ) : (
-                              <Box>
-                                Sorry, you did not meet your funding goal, so
-                                you are not eligible to withdraw the funds.
-                                Funds will be refunded to the contributors.
-                              </Box>
+                              </Flex>
                             )}
                           </AlertDescription>
                         </Box>
@@ -554,14 +471,14 @@ export default function CampaignDetails({
                     </Button>
                     <Box fontSize="xs">
                       <Box mb="2">
-                        <strong>All-or-nothing</strong>: If the campaign
-                        doesn&apos;t meet its funding goal, contributors will be
-                        eligible for a refund.
+                        <strong>Flexible funding</strong>: Creator keeps
+                        whatever money they raise, even if they don&apos;t hit
+                        their target. No refunds to backers if the campaign
+                        falls short.
                       </Box>
                       <Box>
-                        STX and sBTC prices can fluctuate. This fundraiser is
-                        considered successful if the USD goal is met{" "}
-                        <strong>at any point</strong> during the campaign.
+                        The creator can always choose to cancel this fundraiser
+                        and provide refunds.
                       </Box>
                     </Box>
                   </Flex>

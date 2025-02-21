@@ -2,6 +2,7 @@ import { UseQueryResult, useQuery } from "@tanstack/react-query";
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
 import { cvToJSON, hexToCV, cvToHex, principalCV } from "@stacks/transactions";
+import { satsToSbtc, useCurrentPrices, ustxToStx } from "@/lib/currency-utils";
 
 interface CampaignInfo {
   start: number;
@@ -13,11 +14,13 @@ interface CampaignInfo {
   donationCount: number;
   isExpired: boolean;
   isWithdrawn: boolean;
-  isGoalMet: boolean;
+  isCancelled: boolean;
 }
 
 export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
   const api = getApi(getStacksUrl()).smartContractsApi;
+  const { data: prices } = useCurrentPrices();
+
   return useQuery<CampaignInfo>({
     queryKey: ["campaignInfo"],
     queryFn: async () => {
@@ -33,20 +36,28 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
       if (response?.okay && response?.result) {
         const result = cvToJSON(hexToCV(response?.result || ""));
         if (result?.success) {
+          const totalSbtc = parseInt(
+            result?.value?.value?.totalSbtc?.value,
+            10
+          );
+          const totalStx = parseInt(result?.value?.value?.totalStx?.value, 10);
+
           return {
             goal: parseInt(result?.value?.value?.goal?.value, 10),
             start: parseInt(result?.value?.value?.start?.value, 10),
             end: parseInt(result?.value?.value?.end?.value, 10),
-            totalSbtc: parseInt(result?.value?.value?.totalSbtc?.value, 10),
-            totalStx: parseInt(result?.value?.value?.totalStx?.value, 10),
-            usdValue: parseInt(result?.value?.value?.usdValue?.value, 10),
+            totalSbtc,
+            totalStx,
+            usdValue:
+              Number(ustxToStx(totalStx)) * (prices?.stx || 0) +
+              satsToSbtc(totalSbtc) * (prices?.sbtc || 0),
             donationCount: parseInt(
               result?.value?.value?.donationCount?.value,
               10
             ),
             isExpired: result?.value?.value?.isExpired?.value,
             isWithdrawn: result?.value?.value?.isWithdrawn?.value,
-            isGoalMet: result?.value?.value?.isGoalMet?.value,
+            isCancelled: result?.value?.value?.isCancelled?.value,
           };
         } else {
           throw new Error("Error fetching campaign info from blockchain");
