@@ -8,25 +8,12 @@ const accounts = simnet.getAccounts();
 const deployer = accounts.get("deployer")!;
 const donor1 = accounts.get("wallet_1")!;
 
-const stxPrice = 100; // $1 STX price in cents
-const btcPrice = 100000000; // $100k BTC price in cents
-
 function getCurrentStxBalance(address: string) {
   const assetsMap = simnet.getAssetsMap();
   return assetsMap.get("STX")?.get(address) || BigInt(0);
 }
 
 describe("fundraising campaign", () => {
-  const initPrices = async () => {
-    const response = await simnet.callPublicFn(
-      "price-feed",
-      "update-prices",
-      [Cl.uint(stxPrice), Cl.uint(btcPrice)],
-      deployer
-    );
-    const block = simnet.burnBlockHeight;
-    return { response, block };
-  };
   // helper to set up a basic campaign
   const initCampaign = async (goal: number) => {
     const response = await simnet.callPublicFn(
@@ -40,16 +27,12 @@ describe("fundraising campaign", () => {
     return { response, block };
   };
 
-  it("initializes with valid goal", async () => {
-    const { response: priceResponse } = await initPrices();
-    expect(priceResponse.result).toBeOk(Cl.bool(true));
-
+  it("initializes with a goal", async () => {
     const { response } = await initCampaign(100000);
     expect(response.result).toBeOk(Cl.bool(true));
   });
 
   it("accepts STX donations during campaign", async () => {
-    await initPrices();
     await initCampaign(100000);
     const response = await simnet.callPublicFn(
       "fundraising",
@@ -80,9 +63,6 @@ describe("fundraising campaign", () => {
   //     deployer
   //   );
   //   expect(mintResponse.result).toBeOk(Cl.bool(true));
-
-  // const { response: priceResponse } = await initPrices(100000);
-  // expect(priceResponse.result).toBeOk(Cl.bool(true));
 
   //   await initCampaign(100000);
   //   const response = await simnet.callPublicFn(
@@ -116,7 +96,6 @@ describe("fundraising campaign", () => {
   });
 
   it("allows multiple donations from same donor", async () => {
-    await initPrices();
     await initCampaign(100000);
 
     // first donation
@@ -145,13 +124,10 @@ describe("fundraising campaign", () => {
   });
 
   it("prevents donations after campaign ends", async () => {
-    await initPrices();
-    const { block } = await initCampaign(100000);
+    await initCampaign(100000);
 
     // move past campaign duration
     await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
 
     const response = await simnet.callPublicFn(
       "fundraising",
@@ -163,7 +139,6 @@ describe("fundraising campaign", () => {
   });
 
   it("prevents withdrawal before campaign ends", async () => {
-    await initPrices();
     await initCampaign(10000);
 
     // make a donation to meet goal
@@ -183,14 +158,13 @@ describe("fundraising campaign", () => {
     expect(response.result).toBeErr(Cl.uint(104)); // err-campaign-not-ended
   });
 
-  it("allows withdrawal when goal met and campaign ended", async () => {
-    await initPrices();
+  it("allows withdrawal when campaign ended", async () => {
     await initCampaign(10000);
 
     const originalDeployerBalance = getCurrentStxBalance(deployer);
-    const donationAmount = BigInt(15000000000); // Donation in microstacks = 15,000 stx
+    const donationAmount = BigInt(5000000000);
 
-    // make a donation to meet goal
+    // make a donation (does not meet goal)
     await simnet.callPublicFn(
       "fundraising",
       "donate-stx",
@@ -200,8 +174,6 @@ describe("fundraising campaign", () => {
 
     // move past campaign duration
     await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
 
     const response = await simnet.callPublicFn(
       "fundraising",
@@ -217,8 +189,7 @@ describe("fundraising campaign", () => {
     );
   });
 
-  it("prevents withdrawal when goal not met", async () => {
-    await initPrices();
+  it("prevents withdrawal when campaign is cancelled", async () => {
     await initCampaign(100000);
 
     // make a small donation that won't meet goal
@@ -231,8 +202,14 @@ describe("fundraising campaign", () => {
 
     // move past campaign duration
     await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
+
+    const cancelResponse = await simnet.callPublicFn(
+      "fundraising",
+      "cancel-campaign",
+      [],
+      deployer
+    );
+    expect(cancelResponse.result).toBeOk(Cl.bool(true));
 
     const response = await simnet.callPublicFn(
       "fundraising",
@@ -240,17 +217,16 @@ describe("fundraising campaign", () => {
       [],
       deployer
     );
-    expect(response.result).toBeErr(Cl.uint(102)); // err-goal-not-met
+    expect(response.result).toBeErr(Cl.uint(105)); // err-campaign-cancelled
   });
 
-  it("allows one refund when goal not met and campaign ended", async () => {
-    await initPrices();
+  it("allows one refund when campaign is cancelled", async () => {
     await initCampaign(100000);
 
     const originalDonorBalance = getCurrentStxBalance(donor1);
     const donationAmount = BigInt(5000000000); // Donation in microstacks = 5,000 stx
 
-    // make a donation, but don't meet the goal
+    // make a donation
     await simnet.callPublicFn(
       "fundraising",
       "donate-stx",
@@ -263,11 +239,16 @@ describe("fundraising campaign", () => {
       originalDonorBalance - donationAmount
     );
 
-    // move past campaign duration
-    await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
+    // Cancel campaign
+    const cancelResponse = await simnet.callPublicFn(
+      "fundraising",
+      "cancel-campaign",
+      [],
+      deployer
+    );
+    expect(cancelResponse.result).toBeOk(Cl.bool(true));
 
+    // Request refund
     const response = await simnet.callPublicFn(
       "fundraising",
       "refund",
@@ -293,11 +274,10 @@ describe("fundraising campaign", () => {
     expect(getCurrentStxBalance(donor1)).toEqual(originalDonorBalance);
   });
 
-  it("prevents refund when goal is met", async () => {
-    await initPrices();
+  it("prevents refund when campaign is not cancelled", async () => {
     await initCampaign(10000);
 
-    // make a donation that meets goal
+    // make a donation
     await simnet.callPublicFn(
       "fundraising",
       "donate-stx",
@@ -307,8 +287,6 @@ describe("fundraising campaign", () => {
 
     // move past campaign duration
     await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
 
     const response = await simnet.callPublicFn(
       "fundraising",
@@ -316,11 +294,10 @@ describe("fundraising campaign", () => {
       [],
       donor1
     );
-    expect(response.result).toBeErr(Cl.uint(105)); // err-goal-met
+    expect(response.result).toBeErr(Cl.uint(103)); // err-not-cancelled
   });
 
   it("returns campaign info correctly", async () => {
-    await initPrices();
     const { block } = await initCampaign(100000);
 
     const response = await simnet.callReadOnlyFn(
@@ -337,11 +314,10 @@ describe("fundraising campaign", () => {
         goal: Cl.uint(100000),
         totalStx: Cl.uint(0),
         totalSbtc: Cl.uint(0),
-        usdValue: Cl.uint(0),
         donationCount: Cl.uint(0),
         isExpired: Cl.bool(false),
         isWithdrawn: Cl.bool(false),
-        isGoalMet: Cl.bool(false),
+        isCancelled: Cl.bool(false),
       })
     );
 
@@ -368,18 +344,15 @@ describe("fundraising campaign", () => {
         goal: Cl.uint(100000),
         totalStx: Cl.uint(donationAmount),
         totalSbtc: Cl.uint(0),
-        usdValue: Cl.uint(5000), // 5000 STX = $5000 in this example
         donationCount: Cl.uint(1),
         isExpired: Cl.bool(false),
         isWithdrawn: Cl.bool(false),
-        isGoalMet: Cl.bool(false),
+        isCancelled: Cl.bool(false),
       })
     );
 
     // move past campaign duration
     await simnet.mineEmptyBlocks(4321);
-    // ensure prices are up to date
-    await initPrices();
 
     // Verify campaign shows expired
     const response3 = await simnet.callReadOnlyFn(
@@ -396,11 +369,10 @@ describe("fundraising campaign", () => {
         goal: Cl.uint(100000),
         totalStx: Cl.uint(donationAmount),
         totalSbtc: Cl.uint(0),
-        usdValue: Cl.uint(5000), // 5000 STX = $5000 in this example
         donationCount: Cl.uint(1),
         isExpired: Cl.bool(true),
         isWithdrawn: Cl.bool(false),
-        isGoalMet: Cl.bool(false),
+        isCancelled: Cl.bool(false),
       })
     );
   });

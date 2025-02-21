@@ -150,7 +150,7 @@
 (define-read-only (get-sbtc-donation (donor principal))
   (ok (default-to u0 (map-get? sbtc-donations donor))))
 
-(define-public (get-campaign-info)
+(define-read-only (get-campaign-info)
   (ok {
     start: (var-get campaign-start),
     end: (+ (var-get campaign-start) (var-get campaign-duration)),
