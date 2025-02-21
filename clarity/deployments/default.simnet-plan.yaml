@@ -60,11 +60,6 @@ plan:
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token.clar"
             clarity-version: 3
         - emulated-contract-publish:
-            contract-name: price-feed
-            emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
-            path: contracts/price-feed.clar
-            clarity-version: 3
-        - emulated-contract-publish:
             contract-name: fundraising
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/fundraising.clar

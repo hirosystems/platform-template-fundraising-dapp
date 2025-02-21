@@ -57,6 +57,8 @@ When you're ready to deploy in Testnet or Mainnet, you can choose to add similar
 
 ## About the Smart Contracts
 
+This contract uses a [Stacks<>Pyth bridge](https://github.com/Trust-Machines/stacks-pyth-bridge) to get current token prices.
+
 This app is built with two Clarity contracts that work together:
 
 ### `fundraising.clar`
@@ -68,14 +70,6 @@ Handles the core campaign logic.
 - Tracks individual contributions
 - Allows refunds to donors if the goal isn't hit after 30 days
 - Lets the beneficiary (contract owner) withdraw the raised funds if the goal is hit
-
-### `price-feed.clar`
-
-A basic price oracle.
-
-- Stores current prices for STX and sBTC in USD
-- Lets an authorized address update prices
-- Errors if prices get too stale (>24h old)
 
 The fundraising contract uses the price feed to convert crypto donations into USD value to check if campaigns hit their goals.
 

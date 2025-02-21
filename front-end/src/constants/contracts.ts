@@ -1,7 +1,6 @@
 import { devnetWallets } from "@/lib/devnet-wallet-context";
 
 const CONTRACT_NAME = "fundraising";
-const PRICE_FEED_CONTRACT_NAME = "price-feed";
 
 const DEPLOYER_ADDRESS =
   process.env.NEXT_PUBLIC_STACKS_NETWORK === "devnet"
@@ -13,11 +12,6 @@ const DEPLOYER_ADDRESS =
 export const FUNDRAISING_CONTRACT = {
   address: DEPLOYER_ADDRESS,
   name: CONTRACT_NAME,
-} as const;
-
-export const PRICE_FEED_CONTRACT = {
-  address: DEPLOYER_ADDRESS,
-  name: PRICE_FEED_CONTRACT_NAME,
 } as const;
 
 const sbtcMainnetAddress = "SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4";
@@ -32,8 +26,4 @@ export const SBTC_CONTRACT = {
 
 export const getContractIdentifier = () => {
   return `${FUNDRAISING_CONTRACT.address}.${FUNDRAISING_CONTRACT.name}`;
-};
-
-export const getPriceFeedContractIdentifier = () => {
-  return `${PRICE_FEED_CONTRACT.address}.${PRICE_FEED_CONTRACT.name}`;
 };

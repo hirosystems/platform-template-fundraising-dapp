@@ -75,19 +75,31 @@
     (var-set is-campaign-goal-met (unwrap-panic (is-goal-met)))
     (ok true)))
 
-;; Calculate total USD value
 (define-read-only (get-total-usd)
   (let (
-    (stx-price (unwrap! (contract-call? .price-feed get-stx-price) 
-                        err-price-expired))
-    (sbtc-price (unwrap! (contract-call? .price-feed get-sbtc-price)
-                         err-price-expired))
-    ;; STX: divide by 1000000 to convert microstacks to STX, then divide by 100 for cents->dollars
-    (stx-value (/ (* (var-get total-stx) stx-price) u100000000))
-    ;; sBTC: divide by 100000000 to convert satoshis to BTC, then divide by 100 for cents->dollars 
-    (sbtc-value (/ (* (var-get total-sbtc) sbtc-price) u10000000000))
+    (pyth-sbtc-price-data (unwrap! 
+      (contract-call?
+        'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3
+        read-price-feed
+        0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43 ;; ID of the BTC price feed
+        'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3)
+      err-code))
+    (pyth-stx-price-data (unwrap! 
+      (contract-call?
+        'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3
+        read-price-feed
+        0xec7a775f46379b5e943c3526b1c8d54cd49749176b0b98e02dde68d1bd335c17 ;; ID of the STX price feed
+        'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3)
+      err-code))
+    (sbtc-oracle-price (get price pyth-sbtc-price-data))
+    (stx-oracle-price (get price pyth-stx-price-data))
+    ;; the price returned from the oracle: price * 10^(-5) = USD
+    ;; See: https://docs.pyth.network/price-feeds/best-practices
+    (sbtc-value (/ (* (var-get total-sbtc) sbtc-oracle-price) u100000000000000)) ;; total-sbtc is in Satoshis 
+    (stx-value (/ (* (var-get total-stx) stx-oracle-price) u100000000000)) ;; total-stx is in microstacks
   )
-    (ok (+ stx-value sbtc-value))))
+    (ok (+ stx-value sbtc-value)))
+)
 
 ;; Check if goal is met
 (define-read-only (is-goal-met)
