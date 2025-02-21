@@ -17,7 +17,7 @@ contract_id = 'SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3'
 [contracts.fundraising]
 path = 'contracts/fundraising.clar'
 clarity_version = 3
-epoch = 3.1
+epoch = 3.0
 
 [repl.analysis]
 passes = ['check_checker']
