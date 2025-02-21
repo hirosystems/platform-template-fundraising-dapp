@@ -2,7 +2,7 @@ import { UseQueryResult, useQuery } from "@tanstack/react-query";
 import { getApi, getStacksUrl } from "@/lib/stacks-api";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
 import { cvToJSON, hexToCV, cvToHex, principalCV } from "@stacks/transactions";
-import { satsToSbtc, useCurrentPrices, ustxToStx } from "@/lib/currency-utils";
+import { PriceData, satsToSbtc, ustxToStx } from "@/lib/currency-utils";
 
 interface CampaignInfo {
   start: number;
@@ -17,9 +17,10 @@ interface CampaignInfo {
   isCancelled: boolean;
 }
 
-export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
+export const useCampaignInfo = (
+  currentPrices: PriceData | undefined
+): UseQueryResult<CampaignInfo> => {
   const api = getApi(getStacksUrl()).smartContractsApi;
-  const { data: prices } = useCurrentPrices();
 
   return useQuery<CampaignInfo>({
     queryKey: ["campaignInfo"],
@@ -49,8 +50,8 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
             totalSbtc,
             totalStx,
             usdValue:
-              Number(ustxToStx(totalStx)) * (prices?.stx || 0) +
-              satsToSbtc(totalSbtc) * (prices?.sbtc || 0),
+              Number(ustxToStx(totalStx)) * (currentPrices?.stx || 0) +
+              satsToSbtc(totalSbtc) * (currentPrices?.sbtc || 0),
             donationCount: parseInt(
               result?.value?.value?.donationCount?.value,
               10
@@ -70,6 +71,7 @@ export const useCampaignInfo = (): UseQueryResult<CampaignInfo> => {
     },
     refetchInterval: 10000,
     retry: false,
+    enabled: !!(currentPrices?.stx && currentPrices?.sbtc),
   });
 };
 

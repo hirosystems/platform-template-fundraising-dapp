@@ -82,7 +82,7 @@ export const usdToSbtc = (usdAmount: number, sbtcPrice: number): number => {
   return usdAmount / sbtcPrice;
 };
 
-interface PriceData {
+export interface PriceData {
   stx: number;
   sbtc: number;
 }

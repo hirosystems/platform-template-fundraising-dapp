@@ -35,7 +35,7 @@ import {
   isDevnetEnvironment,
   isTestnetEnvironment,
 } from "@/lib/contract-utils";
-import { satsToSbtc, ustxToStx } from "@/lib/currency-utils";
+import { satsToSbtc, useCurrentPrices, ustxToStx } from "@/lib/currency-utils";
 import { FUNDRAISING_CONTRACT } from "@/constants/contracts";
 import { getRefundTx } from "@/lib/campaign-utils";
 import { getStacksNetworkString } from "@/lib/stacks-api";
@@ -62,7 +62,9 @@ export default function CampaignDetails({
   const [currentIndex, setCurrentIndex] = useState(0);
   const slideSize = useBreakpointValue({ base: "100%", md: "500px" });
 
-  const { data: campaignInfo, error: campaignFetchError } = useCampaignInfo();
+  const { data: currentPrices } = useCurrentPrices();
+  const { data: campaignInfo, error: campaignFetchError } =
+    useCampaignInfo(currentPrices);
   const { data: currentBlock } = useCurrentBtcBlock();
 
   const campaignIsUninitialized = campaignInfo?.start === 0;
@@ -197,7 +199,11 @@ export default function CampaignDetails({
                     <Stat>
                       <StatLabel>Raised</StatLabel>
                       <StatNumber>
-                        ${campaignInfo?.usdValue?.toLocaleString()}
+                        $
+                        {campaignInfo?.usdValue?.toLocaleString(undefined, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </StatNumber>
                       <StatHelpText>
                         of ${campaignInfo?.goal?.toLocaleString()} goal
