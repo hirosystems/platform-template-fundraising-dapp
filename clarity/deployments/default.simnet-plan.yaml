@@ -50,6 +50,14 @@ plan:
     - id: 0
       transactions:
         - emulated-contract-publish:
+            contract-name: hk-cursor-v2
+            emulated-sender: SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F
+            path: "./.cache/requirements/SP2J933XB2CP2JQ1A4FGN8JA968BBG3NK3EKZ7Q9F.hk-cursor-v2.clar"
+            clarity-version: 2
+      epoch: "2.4"
+    - id: 1
+      transactions:
+        - emulated-contract-publish:
             contract-name: sbtc-registry
             emulated-sender: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-registry.clar"
@@ -59,9 +67,37 @@ plan:
             emulated-sender: SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4
             path: "./.cache/requirements/SM3VDXK3WZZSA84XXFKAFAF15NNZX32CTSG82JFQ4.sbtc-token.clar"
             clarity-version: 3
+      epoch: "3.0"
+    - id: 2
+      transactions:
+        - emulated-contract-publish:
+            contract-name: wormhole-traits-v1
+            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
+            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.wormhole-traits-v1.clar"
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: pyth-traits-v1
+            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
+            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-traits-v1.clar"
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: pyth-governance-v2
+            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
+            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-governance-v2.clar"
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: pyth-oracle-v3
+            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
+            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-oracle-v3.clar"
+            clarity-version: 3
+        - emulated-contract-publish:
+            contract-name: pyth-storage-v3
+            emulated-sender: SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY
+            path: "./.cache/requirements/SP3R4F6C1J3JQWWCVZ3S7FRRYPMYG6ZW6RZK31FXY.pyth-storage-v3.clar"
+            clarity-version: 3
         - emulated-contract-publish:
             contract-name: fundraising
             emulated-sender: ST1PQHQKV0RJXZFY1DGX8MNSNYVE3VGZJSRTPGZGM
             path: contracts/fundraising.clar
             clarity-version: 3
-      epoch: "3.0"
+      epoch: "3.1"
