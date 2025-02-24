@@ -41,6 +41,7 @@ NEXT_PUBLIC_PLATFORM_HIRO_API_KEY=your-api-key-here
 
 Start the Next.js application from the front-end directory.
 ```bash
+cd front-end
 npm run dev
 ```
 
