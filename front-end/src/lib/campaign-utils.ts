@@ -42,7 +42,7 @@ export const getContributeSbtcTx = (
     type: "ft-postcondition",
     address,
     condition: "eq",
-    asset: `${SBTC_CONTRACT.address}.${SBTC_CONTRACT.name}::sBTC`,
+    asset: `${SBTC_CONTRACT.address}.${SBTC_CONTRACT.name}::sbtc-token`,
     amount,
   };
 
