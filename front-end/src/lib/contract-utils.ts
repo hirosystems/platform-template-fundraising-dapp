@@ -1,5 +1,5 @@
 import { DEVNET_NETWORK } from "@/constants/devnet";
-import { ContractCallRegularOptions } from "@stacks/connect";
+import { ContractCallRegularOptions, FinishedTxData, request } from "@stacks/connect";
 import {
   makeContractCall,
   broadcastTransaction,
@@ -61,4 +61,42 @@ export const executeContractCall = async (
   }
 
   return { txid: response.txid };
+};
+
+
+export const openContractCall = async (options: ContractCallRegularOptions) => {
+  try {
+    const contract = `${options.contractAddress}.${options.contractName}`;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const params: any = {
+      contract,
+      functionName: options.functionName,
+      functionArgs: options.functionArgs,
+      network:
+        typeof options.network === 'object'
+          ? 'chainId' in options.network
+            ? options.network.chainId === 1
+              ? 'mainnet'
+              : 'testnet'
+            : options.network
+          : options.network,
+      postConditions: options.postConditions,
+      postConditionMode: options.postConditionMode === PostConditionMode.Allow ? 'allow' : 'deny',
+      sponsored: options.sponsored,
+    };
+
+    const result = await request({}, 'stx_callContract', params);
+
+    if (options.onFinish) {
+      options.onFinish({ txId: result.txid } as unknown as FinishedTxData);
+    }
+
+    return result;
+  } catch (error: unknown) {
+    console.error('Failed to execute contract call:', error);
+    if (error instanceof Error && error.message?.includes('cancelled') && options.onCancel) {
+      options.onCancel();
+    }
+    throw error;
+  }
 };

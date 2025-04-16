@@ -29,6 +29,7 @@ import {
   executeContractCall,
   isDevnetEnvironment,
   isTestnetEnvironment,
+  openContractCall,
 } from "@/lib/contract-utils";
 import { useDevnetWallet } from "@/lib/devnet-wallet-context";
 import { ConnectWalletButton } from "./ConnectWallet";
@@ -44,7 +45,6 @@ import {
   useCurrentPrices,
   ustxToStx,
 } from "@/lib/currency-utils";
-import { openContractCall } from "@stacks/connect";
 
 export default function DonationModal({
   isOpen,
